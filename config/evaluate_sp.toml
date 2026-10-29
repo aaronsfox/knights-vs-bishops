@@ -1,0 +1,27 @@
+# evaluate_sp: settings for the screening pass (Question 2a): every starting
+# position of the study evaluated at a ladder of node budgets. Every budget is
+# a separate, fresh, single-threaded search.
+
+[output]
+# Relative to the repository root. Git tracks results/evaluate_sp/ (the
+# production data); other folders under results/ stay local.
+dir = "results/evaluate_sp"
+
+[budgets]
+# Node budgets per engine (folder name under engines/), on a log scale.
+# Alpha-beta engines go to 1e9. On one Cascade Lake core Stockfish searches
+# ~0.5M nodes/s, so the full ladder takes ~40 min per position (~35 min of it
+# at 1e9); the 57 positions take ~40 core-hours per engine. `collect` keeps
+# only the budgets listed here.
+stockfish   = [10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000]
+caissa      = [10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000]
+# Stockfish 11 reports centipawns only (no WDL); used for checks, not E.
+sf11        = [10_000, 100_000, 1_000_000, 10_000_000]
+# An Lc0 node is a full network evaluation. Lc0 runs on a GPU; the pilot
+# confirms the top budget (1e6) fits the time available.
+lc0         = [100, 1_000, 10_000, 100_000, 1_000_000]
+
+[multipv]
+# MultiPV = 1 runs at every budget. Higher settings (run with --multipv 5)
+# use each engine's top budget only.
+top_budget_only = true

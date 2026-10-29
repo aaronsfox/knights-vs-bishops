@@ -1,0 +1,26 @@
+# Stockfish 11 (sf11). Unmodified Stockfish 11: the baseline every variant plays.
+# Built from Stockfish 11 (hand-crafted evaluation) by
+# engines/stockfish11/build_linux.sh; see engines/stockfish11/README.md.
+# Binaries are not committed. After building, run
+#   python code/setup_engines.py record --engine sf11
+
+[engine]
+name = "Stockfish"
+version = "11"
+display_name = "Stockfish 11"
+search_type = "alpha-beta, hand-crafted evaluation"
+training_lineage = "Hand-tuned evaluation (tuned by self-play testing)"
+license = "GPL-3.0"
+homepage = "https://github.com/official-stockfish/Stockfish/tree/sf_11"
+smoke_nodes = 5000
+
+[binary]
+linux = "bin/stockfish"
+windows = "bin/stockfish.exe"
+darwin = "bin/stockfish"
+
+[uci_options]
+Threads = 1
+Hash = 1024
+
+[optional_uci_options]

@@ -1,0 +1,30 @@
+{
+  "_comment": "SHA-256 of each engine binary and network, per platform. Written by `python code/setup_engines.py record`; checked before every run. Stockfish 19, Caissa 2.0 and Lc0 entries are carried over from the Chess960 project: copy those binaries (and Lc0's network) across and they match. Record the Stockfish 11 builds after building them on the cluster.",
+  "caissa": {
+    "linux": {
+      "version": "2.0",
+      "id_name": "Caissa 2.0 BMI2",
+      "binary_sha256": "2812a449cfa3b3bcb5f3fb05640f682253d95408e2d993f50b275be634187bfd",
+      "network_sha256": null,
+      "recorded_utc": "2026-10-14T03:51:09+00:00"
+    }
+  },
+  "lc0": {
+    "linux": {
+      "version": "0.32.1",
+      "id_name": "Lc0 v0.32.1",
+      "binary_sha256": "5a07509e370d6cc7fbd3729e6784ac946a36d465f6583249ebb929b4d9bf7703",
+      "network_sha256": "ab3eb6db107879e2c4e3ad299ba011393c53361f6d314e2f908650f7e8371e29",
+      "recorded_utc": "2026-10-14T06:18:37+00:00"
+    }
+  },
+  "stockfish": {
+    "linux": {
+      "version": "19",
+      "id_name": "Stockfish 19",
+      "binary_sha256": "0f83d24cc46d2c66c60f16001af5444873bc112b7d028594513426894c12da19",
+      "network_sha256": null,
+      "recorded_utc": "2026-10-14T03:29:19+00:00"
+    }
+  }
+}

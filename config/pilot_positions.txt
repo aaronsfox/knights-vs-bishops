@@ -1,0 +1,14 @@
+# Pilot positions: a spread of designs, each with its colour-flipped twin, so
+# the pilot tests timing, draw rates and the twin pooling on every kind of
+# comparison (not just the extremes, which inflates correlations).
+#
+# Use as --positions @config/pilot_positions.txt
+
+start                    # standard position (control)
+f2  f7                   # pawn odds
+c1-b8  b1-c8             # BBN v BNN (1v1)
+b1-g8  g1-b8             # BBN v BBN, different knights (1v1)
+b1-c1-c8-f8  c1-f1-b8-c8 # BN v NN (single bishop v knight)
+b1-g1-b8-c8  b1-c1-b8-g8 # BB v BN (pair over one bishop)
+b1-g1-c8-f8  c1-f1-b8-g8 # BB v NN (pair and piece type)
+b1-c1-b8-c8              # BN v BN, same squares (mirrored control)

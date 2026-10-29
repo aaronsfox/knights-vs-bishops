@@ -1,0 +1,45 @@
+# tablebase: settings for Stage 1 (exact endgame value from Syzygy tables).
+#
+# Each material set is named White v Black with White the strong side (the
+# side with the extra pawns, or with the bishop in a direct contest), e.g.
+# "KBPvKN". Each pair compares the bishop set with its knight counterpart.
+
+[output]
+dir = "results/tablebase"
+
+[tablebases]
+# Folder(s) of Syzygy .rtbw/.rtbz files (several separated by ':'). 3-6 piece
+# tables are ~150 GB; 7-piece sets need the 7-piece tables (~17 TB) locally.
+path = "/path/to/syzygy"
+
+[sampling]
+samples_per_set = 1_000_000
+seed = 1999
+
+[[pairs]]
+name = "extra pawn"
+sets = ["KBPvKN", "KNPvKB"]            # 5 pieces
+
+[[pairs]]
+name = "two extra pawns"
+sets = ["KBPPvKN", "KNPPvKB"]          # 6 pieces
+
+[[pairs]]
+name = "three extra pawns"
+sets = ["KBPPPvKN", "KNPPPvKB"]        # 7 pieces
+
+[[pairs]]
+name = "equal pawns, direct contest"
+sets = ["KBPvKNP"]                     # 6 pieces; bishop side as White
+
+[[pairs]]
+name = "extra pawn, pawns on both sides"
+sets = ["KBPPvKNP", "KNPPvKBP"]        # 7 pieces
+
+[[pairs]]
+name = "with rooks, direct contest"
+sets = ["KRBvKRN"]                     # 6 pieces (Kaufman: bishop better alongside a rook)
+
+[[pairs]]
+name = "extra pawn with rooks"
+sets = ["KRBPvKRN", "KRNPvKRB"]        # 7 pieces

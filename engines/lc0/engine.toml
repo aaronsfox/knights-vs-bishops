@@ -1,0 +1,52 @@
+# Lc0 (Leela Chess Zero): neural-network MCTS. Production runs use an NVIDIA
+# GPU on the Linux cluster (A100, full-precision CUDA backend); on Windows the
+# CPU build is used for development only. Searches are node-limited, so the
+# hardware changes speed, not what a search covers.
+# Binaries and networks are not committed. Install as described in README.md,
+# then run
+#   python code/setup_engines.py record --engine lc0
+
+[engine]
+name = "Lc0"
+version = "0.32.1"
+search_type = "neural MCTS"
+training_lineage = "Lc0 self-play"
+license = "GPL-3.0"
+homepage = "https://lczero.org"
+# One node = the network's top policy move: enough to check legal
+# moves from every starting position without a slow search.
+smoke_nodes = 1
+
+[binary]
+linux = "bin/lc0"
+windows = "bin/lc0.exe"
+darwin = "bin/lc0"
+
+[network]
+# The same file (same SHA-256) must be used on every machine.
+file = "networks/t3-512x15x16h-distill2-swa-03477500.pb"
+uci_option = "WeightsFile"
+
+[uci_options]
+# One search thread keeps the tree search reproducible.
+Threads = 1
+UCI_ShowWDL = true
+# Search exactly the node budget instead of stopping early when the best
+# move can no longer change.
+SmartPruningFactor = 0
+
+[platform_uci_options.linux]
+# Full-precision (fp32) CUDA backend, no cuDNN. "cuda-fp16" would be faster
+# but rounds the network's arithmetic more coarsely.
+Backend = "cuda"
+
+[optional_uci_options]
+# A fixed batch size, rather than one chosen by the backend, keeps how the
+# search gathers positions for the network the same from run to run.
+MinibatchSize = 256
+
+[environment]
+# Keep CPU maths libraries on one core (relevant to the CPU build on Windows).
+OPENBLAS_NUM_THREADS = 1
+OMP_NUM_THREADS = 1
+MKL_NUM_THREADS = 1

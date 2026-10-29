@@ -1,0 +1,34 @@
+# Engine binaries and networks are installed locally, never committed
+engines/*/bin/*
+engines/*/networks/*
+!engines/*/bin/.gitkeep
+!engines/*/networks/.gitkeep
+tools/*/bin/*
+!tools/*/bin/.gitkeep
+
+# Results: production outputs are committed so they are archived with the
+# code (add each folder below once it holds production data). Anything else
+# under results/ (test runs with --output-dir results/test, etc.) stays local.
+results/*
+!results/evaluate_sp/
+!results/opening_book/
+!results/selfplay/
+!results/tablebase/
+!results/figures/
+!results/pilot/
+results/tablebase/tables/tablebase_positions.parquet
+logs/
+*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

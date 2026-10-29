@@ -1,0 +1,32 @@
+# Conda environment for the knights vs bishops project.
+#   conda env create -f environment.yml
+#   conda activate kvb
+# After changing dependencies: conda env update -f environment.yml --prune
+# (never while cluster jobs that use the environment are running: on NFS
+# home directories that crashed running jobs with "Bus error" in Chess960).
+# Keep the versions here in step with pyproject.toml.
+#
+# If conda is killed while "collecting package metadata" (common on cluster
+# login nodes with per-user memory limits), create just Python and pip-install
+# the rest instead:
+#   conda create -n kvb python=3.12 -y
+#   conda activate kvb
+#   pip install chess numpy pandas pyarrow scipy pytest matplotlib cairosvg
+name: kvb
+channels:
+  - conda-forge
+  - nodefaults   # don't also load Anaconda's default channels (saves memory)
+dependencies:
+  - python=3.12
+  - numpy>=1.26
+  - pandas>=2.2
+  - pyarrow>=15
+  - scipy>=1.11
+  - pytest>=8
+  # Figures. conda-forge's cairosvg brings the cairo library with it.
+  - matplotlib>=3.8
+  - cairosvg>=2.7
+  - pip
+  - pip:
+      # python-chess is published on PyPI as "chess"
+      - chess>=1.11

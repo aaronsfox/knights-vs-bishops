@@ -1,0 +1,95 @@
+# selfplay: settings for engine games (Stages 2 and 3, and the strength ladder).
+#
+# Each match plays every book line of a position `games_per_line` times, with
+# colours swapped in pairs, so each position gets lines_per_position x
+# games_per_line games (50 x 10 = 500). Games are run with fastchess
+# (tools/fastchess/build_linux.sh), one fastchess match per position.
+#
+#   Stage 2   self-play of a full-strength engine on the removal matrix:
+#               python code/selfplay.py run --player stockfish --positions removal,control,pawn_odds
+#   Ladder    self-play of a rung (below) on the key cells:
+#               python code/selfplay.py run --player stockfish_n10k --positions key
+#   Stage 3   a Stockfish 11 variant against the base build, from the standard position:
+#               python code/selfplay.py run --player sf11_b050 --opponent sf11 --positions start
+#
+# Topping up the key comparisons to ~3,000 games each: run the key cells
+# again as a separate batch, e.g. --positions key --batch b2 --games-per-line 40
+# (another 2,000 games per position); collect pools the batches.
+
+[output]
+# Relative to the repository root.
+dir = "results/selfplay"
+
+[book]
+# The book written by `opening_book_generator.py collect`. Its lines are
+# matched to games by round number and checked against the book moves.
+lines = "results/opening_book/book/opening_book_lines.parquet"
+
+[match]
+tc = "10+0.1"                       # seconds + increment per move
+games_per_line = 10                 # must be even (colours are swapped in pairs)
+# fastchess binary, relative to the repository root.
+fastchess = "tools/fastchess/bin/fastchess"
+# Draw adjudication: from move `movenumber`, a game is a draw once both
+# engines' scores have been within `score` cp of 0 for `movecount` moves in a row.
+draw = { movenumber = 40, movecount = 8, score = 10 }
+# Resignation: a game ends once both engines agree on a score beyond `score` cp
+# for `movecount` moves in a row.
+resign = { movecount = 5, score = 1000, twosided = true }
+# A move may overrun the clock by up to this many milliseconds before it
+# counts as a loss on time. Without it, scheduling jitter on busy nodes made
+# Caissa lose 0.4% of Chess960 pilot games on time by 1-32 ms.
+timemargin_ms = 100
+# Hard cap on game length in moves (a draw if reached); 0 = none.
+maxmoves = 0
+# Syzygy tablebases for adjudicating endgames, as a path (several separated
+# by ':'), or "" for none. `tbpieces` caps the number of pieces probed.
+tablebases = ""
+tbpieces = 5
+
+[uci_overrides]
+# Applied on top of each engine's engine.toml options for games only. One
+# thread per engine; a small hash suits 10+0.1 (Fishtest uses 16 MB at this
+# time control) and keeps memory low with many concurrent games.
+Threads = 1
+Hash = 64
+
+# Strength-ladder rungs: an engine with a fixed node budget per move
+# (`nodes`), its own time control (`tc`) and/or extra UCI options
+# (`options`). Use a rung's name as --player. Rungs are placed on a measured
+# Elo scale by matches between them (analysis plan, Question 3a), so the
+# settings here only need to span the range. Maia-3 rungs (human-like play)
+# are played by code/maia_runner.py, not fastchess.
+#
+# A fixed node budget makes play deterministic: every game from the same
+# book line and colour is the same game, move for move (checked in the local
+# test: 6 games per line gave one distinct game per line and colour). For
+# node-limited rungs use --games-per-line 2 and a larger book instead
+# (lines_per_position = 250 gives 500 distinct games per position).
+# analyse_removal.py reports the share of repeated games and warns above 5%.
+[rungs.stockfish_n1k]
+engine = "stockfish"
+nodes = 1_000
+
+[rungs.stockfish_n10k]
+engine = "stockfish"
+nodes = 10_000
+
+[rungs.stockfish_n100k]
+engine = "stockfish"
+nodes = 100_000
+
+# Randomised rungs: Stockfish's UCI_LimitStrength picks weaker moves at
+# random to play at about UCI_Elo (anchored to the CCRL scale; Stockfish 19
+# accepts 1320-3190), so repeated games differ and the full-book design works.
+[rungs.stockfish_elo1500]
+engine = "stockfish"
+options = { UCI_LimitStrength = true, UCI_Elo = 1500 }
+
+[rungs.stockfish_elo2000]
+engine = "stockfish"
+options = { UCI_LimitStrength = true, UCI_Elo = 2000 }
+
+[rungs.stockfish_elo2500]
+engine = "stockfish"
+options = { UCI_LimitStrength = true, UCI_Elo = 2500 }

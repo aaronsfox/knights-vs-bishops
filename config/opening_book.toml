@@ -1,0 +1,63 @@
+# opening_book_generator: settings for the self-play opening book.
+#
+# For each starting position of the study the book holds `lines_per_position`
+# short opening lines of `plies` half-moves (6 = three moves each). Every
+# move in a line is one of the engine's near-best moves, both sides face the
+# same limits, and the lines are chosen so that, on average, they leave the
+# position's evaluation where it started: each removal position keeps its own
+# imbalance. All engines use the same book, so differences between engines
+# (and rungs, and Stockfish 11 variants) can't come from the openings.
+#
+# Searches are single-threaded and node-limited, and the random choices use
+# a fixed seed, so the same engine build regenerates the identical book.
+
+[output]
+# Relative to the repository root.
+dir = "results/opening_book"
+
+[book]
+engine = "stockfish"          # folder name under engines/
+plies = 6                     # half-moves per line (3 moves each)
+lines_per_position = 50
+seed = 1999                   # Kaufman's material imbalances article
+
+[search]
+# Candidate moves at each ply: a MultiPV search at `candidate_nodes`.
+candidate_nodes = 500_000
+multipv = 6
+# Every pool line's final position, and the starting position, are
+# re-evaluated with a deeper single-line search; lines are filtered and
+# balanced on these scores (the *_check columns). The shallow MultiPV scores
+# pick plausible moves but are too noisy to balance on. 0 = balance on the
+# shallow scores instead (testing only).
+check_nodes = 2_000_000
+
+[limits]
+# All in centipawns, from the moving side's point of view.
+# A move is a candidate if it is within `move_margin_cp` of the best move.
+# 50 cp is the classic engine-analysis threshold for an inaccuracy, so every
+# book move is one a strong player could choose without even an inaccuracy.
+move_margin_cp = 50
+# Each side's total loss over its own three moves (each move's distance from
+# the best move, summed) stays at or below this.
+max_side_loss_cp = 100
+# White's and Black's total losses differ by at most this.
+max_side_loss_gap_cp = 50
+# A single line's final evaluation (deeper check) is within this of the
+# starting position's (deeper check). Balance comes mainly from the mean:
+# each position's 50 lines are chosen so their average drift is about zero.
+max_shift_cp = 50
+
+[sampling]
+# Random walks build a pool of distinct candidate lines; the book's lines
+# are chosen from the pool. Walks stop once the pool has
+# `pool_factor * lines_per_position` distinct lines or after `max_walks`.
+# Every pool line gets a deeper check search, so the pool size sets the cost.
+pool_factor = 3
+max_walks = 1000
+
+[uci_overrides]
+# Applied on top of the engine's engine.toml options for book generation
+# only. A small hash keeps the many short, fresh searches fast (each one
+# starts by clearing the hash).
+Hash = 64

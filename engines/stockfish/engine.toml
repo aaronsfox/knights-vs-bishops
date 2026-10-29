@@ -1,0 +1,27 @@
+# Stockfish: alpha-beta search with NNUE evaluation.
+# Binaries are not committed. Install as described in README.md, then run
+#   python code/setup_engines.py record --engine stockfish
+
+[engine]
+name = "Stockfish"
+version = "19"
+search_type = "alpha-beta, NNUE"
+training_lineage = "Lc0 data (networks trained largely on Lc0 self-play data)"
+license = "GPL-3.0"
+homepage = "https://stockfishchess.org"
+smoke_nodes = 5000
+
+[binary]
+# Paths relative to this folder.
+linux = "bin/stockfish"
+windows = "bin/stockfish.exe"
+darwin = "bin/stockfish"
+
+[uci_options]
+# Must exist; the run stops if the engine lacks one.
+Threads = 1
+Hash = 1024
+UCI_ShowWDL = true
+
+[optional_uci_options]
+# Set only if the engine offers them.

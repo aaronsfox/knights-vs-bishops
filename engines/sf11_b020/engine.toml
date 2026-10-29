@@ -1,0 +1,34 @@
+# Bishy Anand (sf11_b020). Likes bishops: the bishop is worth 0.2 pawns more relative to the knight.
+# Built from Stockfish 11 (hand-crafted evaluation) by
+# engines/stockfish11/build_linux.sh; see engines/stockfish11/README.md.
+# Binaries are not committed. After building, run
+#   python code/setup_engines.py record --engine sf11_b020
+
+[engine]
+name = "Stockfish"
+version = "11"
+display_name = "Bishy Anand"
+search_type = "alpha-beta, hand-crafted evaluation"
+training_lineage = "Hand-tuned evaluation (tuned by self-play testing)"
+license = "GPL-3.0"
+homepage = "https://github.com/official-stockfish/Stockfish/tree/sf_11"
+smoke_nodes = 5000
+
+[binary]
+linux = "bin/stockfish"
+windows = "bin/stockfish.exe"
+darwin = "bin/stockfish"
+
+[uci_options]
+Threads = 1
+Hash = 1024
+
+[optional_uci_options]
+
+[variant]
+# Read by engines/stockfish11/patch_sf11.py when building. The shift of the
+# bishop's value minus the knight's, in pawns (+ prefers bishops, - knights),
+# split evenly between the two pieces in both game phases; and a multiplier
+# on Stockfish 11's bishop-pair term.
+bishop_minus_knight_pawns = 0.2
+bishop_pair_scale = 1.0

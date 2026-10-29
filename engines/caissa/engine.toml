@@ -1,0 +1,30 @@
+# Caissa: alpha-beta search with NNUE evaluation, trained on its own
+# self-play games (including DFRC openings).
+# Binaries are not committed. Install as described in README.md, then run
+#   python code/setup_engines.py record --engine caissa
+
+[engine]
+name = "Caissa"
+version = "2.0"
+search_type = "alpha-beta, NNUE"
+training_lineage = "Independent: own self-play games"
+license = "MIT"
+homepage = "https://github.com/Witek902/Caissa"
+smoke_nodes = 5000
+
+[binary]
+linux = "bin/caissa"
+windows = "bin/caissa.exe"
+darwin = "bin/caissa"
+
+# If your build needs a separate network file, uncomment and fill in:
+# [network]
+# file = "networks/<file>.pnn"
+# uci_option = "EvalFile"
+
+[uci_options]
+Threads = 1
+Hash = 1024
+UCI_ShowWDL = true
+
+[optional_uci_options]
