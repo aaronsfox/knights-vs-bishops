@@ -9,12 +9,12 @@
 # each task runs PROCS_PER_GPU independent Lc0 processes on its GPU, each on
 # its own share of the task's positions. Every search is still a fresh,
 # single-threaded, node-limited search, so results don't depend on how many
-# processes share the GPU; only the recorded times do. (In Chess960, 4
-# processes per A100 gave only ~1.3x the throughput of one.)
+# processes share the GPU; only the recorded times do. Sharing a GPU may
+# add little throughput, so check PROCS_PER_GPU on the pilot.
 #
 # Defaults: POSITIONS_PER_TASK=20 with PROCS_PER_GPU=4, so array 0-2 covers
-# the 57 positions, 5 per process. At ~3.5 min per position on an unshared
-# A100 a task takes 20-60 min. For another spec or block size, print the
+# the 57 positions, 5 per process. The time limit is a starting guess (a few
+# minutes per position on an A100); set it from the pilot. For another spec or block size, print the
 # --array range with
 #   python code/task_positions.py <POSITIONS> --array <POSITIONS_PER_TASK>
 # Finished positions are skipped, so resubmitting the same job resumes it.

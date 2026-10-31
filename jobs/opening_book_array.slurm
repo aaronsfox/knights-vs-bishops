@@ -13,9 +13,9 @@
 #   sbatch --array=0-13 --export=ALL,POSITIONS=@config/pilot_positions.txt,POSITIONS_PER_TASK=1 \
 #       jobs/opening_book_array.slurm
 #
-# Settings come from config/opening_book.toml. In Chess960 the book cost
-# ~270 core-hours for 960 positions (~17 minutes per position), so blocks of
-# 4 positions take about 70 minutes. With POSITIONS_PER_TASK=4 the 57
+# Settings come from config/opening_book.toml. Expect very roughly 15-20
+# minutes per position (so ~70 minutes per block of 4); the pilot's 14
+# positions give the real figure for setting the time limit. With POSITIONS_PER_TASK=4 the 57
 # positions need array indices 0-14; print the range for another spec with
 #   python code/task_positions.py <POSITIONS> --array <POSITIONS_PER_TASK>
 # Finished positions are skipped, so resubmitting the same job resumes it.
