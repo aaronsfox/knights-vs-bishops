@@ -27,9 +27,10 @@
 # The --array range is the number of blocks minus one; print it with
 #   python code/task_positions.py <POSITIONS> --array <POSITIONS_PER_TASK>
 #
-# Timing: the limits here are starting guesses (a block of 4 positions of
-# 500 games at 10+0.1 on 16 cores is expected to take about an hour); set
-# them from the times the pilot measures. Short limits help backfill. The log prints progress every 5 minutes.
+# Timing: in the Chess960 pilot (16 cores per task, 10+0.1), a position's
+# 500 games took 750-1000 s for Stockfish and 880-1020 s for Caissa, so a
+# block of 4 positions takes about an hour; the 2-hour limit leaves a margin
+# and short limits help backfill. The log prints progress every 5 minutes.
 # Finished positions are skipped, so resubmitting the same job resumes it.
 #
 # Timing matters for time-control games, so each game gets a whole physical
