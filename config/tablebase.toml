@@ -1,4 +1,4 @@
-# tablebase: settings for Stage 1 (exact endgame value from Syzygy tables).
+# tablebase: settings for Step 1 (exact endgame value from Syzygy tables).
 #
 # Each material set is named White v Black with White the strong side (the
 # side with the extra pawns, or with the bishop in a direct contest), e.g.

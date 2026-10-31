@@ -65,15 +65,3 @@ def test_posterior_summary():
 def test_rng_is_reproducible():
     assert sc.rng_for("a", 1).random() == sc.rng_for("a", 1).random()
     assert sc.rng_for("a", 1).random() != sc.rng_for("a", 2).random()
-
-
-def test_bradley_terry_recovers_ratings():
-    true = {"a": 0.0, "b": -200.0, "c": -400.0}
-    rows = []
-    for x in true:
-        for y in true:
-            if x < y:
-                e = 1 / (1 + 10 ** ((true[y] - true[x]) / 400))
-                rows.append({"a": x, "b": y, "points_a": e * 10_000, "games": 10_000})
-    r = sc.bradley_terry(pd.DataFrame(rows), "a").set_index("player").elo
-    assert r["b"] == pytest.approx(-200, abs=2) and r["c"] == pytest.approx(-400, abs=2)

@@ -3,9 +3,10 @@
 The plans are living documents in Claude (private to their owner):
 
 - [Research plan](https://claude.ai/artifact/KuWfR4oCWbLk8yBMNjcq77): question,
-  prior work, the four stages, tooling, compute budget, risks, paper outline.
-- [Analysis plan](https://claude.ai/artifact/8Dbh5FjcsbvYZmvQxnzkhr): data,
-  metrics, the shared statistical framework, and Questions 1-4.
+  prior work, the four steps, tooling, compute budget, risks, paper outline.
+- [Analysis plan](https://claude.ai/artifact/8Dbh5FjcsbvYZmvQxnzkhr): the
+  four steps (tablebases, human play, preference engines, removal matrix),
+  their data, the shared statistical framework, and Questions 1-4.
 
 Export a dated copy here (`analysis_plan_YYYY-MM-DD.md`) when the analysis is
 locked, so the repository records the plan the results were produced under.
@@ -20,8 +21,8 @@ locked, so the repository records the plan the results were produced under.
 | Mirrored controls (own twin) report White's edge, not a focal score | `positions.py` | Gate 2: White's edge should be positive and similar across the standard position and every mirrored control |
 | Opening lines generated from each position, balanced on expected score | `opening_book_generator.py` | Standard books don't apply with pieces missing; each cell keeps its imbalance |
 | Key comparisons topped up as a second batch (`--batch b2`) | `selfplay.py` | Resumable; DEFF uses Kish's weighted cluster size for unequal batches |
-| Node-limited rungs: 2 games per line from a larger book, or `UCI_Elo` rungs | `config/selfplay.toml` | A fixed node budget replays the same game for each line and colour (tested) |
+| Engines play by time control, not a fixed node budget | `config/selfplay.toml` | A fixed node budget replays the same game for each line and colour (tested) |
 | Stockfish 11 shift split half up, half down, in each phase's pawn units | `engines/stockfish11/patch_sf11.py` | Changes B - N without changing minor-piece material against pawns and rooks |
 | Variants change the constants everywhere, not only in evaluation | `patch_sf11.py` | The engine believes its values in search (SEE, pruning) too |
-| Maia games written in fastchess's PGN layout | `code/maia_runner.py` | `selfplay.py collect` and the analyses read them unchanged |
-| Pawn equivalents use each player's own pawn-odds games | `analyse_removal.py` | Puts engines and rungs on one scale despite different WDL models |
+| Pawn equivalents use each engine's own pawn-odds games | `analyse_removal.py` | Puts engines on one scale despite different WDL models; human games use their own pawn-up spells |
+| The strength ladder (reduced-strength Stockfish, Maia-3) is dropped | plans | Human games stratified by rating answer the strength question directly |

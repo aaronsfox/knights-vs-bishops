@@ -6,16 +6,14 @@
 #   bash tools/fastchess/build_linux.sh
 # Submit from the repository root (create logs/ first), choosing the player:
 #
-#   Stage 2, self-play on all 57 positions (15 tasks of 4 positions):
+#   Step 4, self-play on all 57 positions (15 tasks of 4 positions):
 #     sbatch --export=ALL,PLAYER=stockfish jobs/selfplay_array.slurm
 #     sbatch --export=ALL,PLAYER=caissa    jobs/selfplay_array.slurm
-#   Strength ladder, a rung on the key cells (29 positions, 8 tasks):
-#     sbatch --array=0-7 --export=ALL,PLAYER=stockfish_n10k,POSITIONS=key jobs/selfplay_array.slurm
 #   Topping up the key cells by 1,000 games each (another batch), so each
 #   position has 1,500 and each comparison (a position and its twin) 3,000:
 #     sbatch --array=0-7 --time=03:00:00 \
 #         --export=ALL,PLAYER=stockfish,POSITIONS=key,BATCH=b2,GAMES_PER_LINE=20 jobs/selfplay_array.slurm
-#   Stage 3, a Stockfish 11 variant against the base build: 3,000 games from
+#   Step 3, a Stockfish 11 variant against the base build: 3,000 games from
 #   the standard position (50 lines x 60), one task of ~1.5 hours on 16 cores:
 #     sbatch --array=0 --time=03:00:00 \
 #         --export=ALL,PLAYER=sf11_b050,OPPONENT=sf11,POSITIONS=start,GAMES_PER_LINE=60 \

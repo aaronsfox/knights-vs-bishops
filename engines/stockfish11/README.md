@@ -1,7 +1,7 @@
-# Stockfish 11 and the knight/bishop variants (Stage 3)
+# Stockfish 11 and the knight/bishop variants (Step 3)
 
 Stockfish 11 is the last release with a hand-crafted evaluation, so its
-piece values are explicit constants that can be changed. Stage 3 plays each
+piece values are explicit constants that can be changed. Step 3 plays each
 variant against the unmodified build (`engines/sf11`).
 
 | Engine | Shown as | Bishop - knight shift | Bishop-pair term |
@@ -55,5 +55,5 @@ match on the cluster for the same compiler flags). `bin/variant.json`
 records the values each binary was built with.
 
 Then `python code/setup_engines.py record` and commit `engines.lock.json`.
-Stockfish 11 reports centipawns only (no WDL), which is fine here: Stage 3
+Stockfish 11 reports centipawns only (no WDL), which is fine here: Step 3
 measures variants by game results.

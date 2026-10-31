@@ -16,7 +16,7 @@ Groups (usable in position specs, e.g. ``--positions 2v2``):
     1v1        one minor piece removed from each side (16 positions)
     2v2        two minor pieces removed from each side (36 positions)
     pawn_odds  one pawn removed from one side (f2, f7, b2, b7)
-    key        the cells used for the strength ladder (see KEY_DESIGNS)
+    key        the key comparisons and their controls, topped up (see KEY_DESIGNS)
     removal    1v1 + 2v2 (the 52-cell removal matrix)
     all        everything above
 

@@ -1,13 +1,13 @@
-"""Question 4: does preferring one piece win games? (manipulated engines)
+"""Question 3 (Step 3): does preferring one piece win games? (manipulated engines)
 
 Each Stockfish 11 variant plays the unmodified build (engines/sf11) from the
 standard position, colours swapped in pairs over the opening book. A variant
 scoring above 0.5 gains from its preference; below 0.5 it loses from it.
 
-* **4a. Variant vs base:** the variant's W/D/L, with a Dirichlet posterior
+* **3a. Variant vs base:** the variant's W/D/L, with a Dirichlet posterior
   (stats_core.py; DEFF from the ICC of games within book lines), giving its
   E and Delta_Elo with 95% intervals, the decisive rate and P(Delta_Elo > 0).
-* **4b. Likes vs loves:** within each direction (knight, bishop), the
+* **3b. Likes vs loves:** within each direction (knight, bishop), the
   stronger preference minus the milder one, from independent posterior draws.
 
 Gate 3 (analysis plan): the base build against itself should score ~0 Elo;
@@ -39,7 +39,7 @@ LINE = ["position_id", "batch", "line_index"]
 def display_name(key: str) -> str:
     try:
         return load_engine_config(key).display_name
-    except Exception:  # noqa: BLE001 (a key without a manifest, e.g. a rung)
+    except Exception:  # noqa: BLE001 (a key without a manifest, e.g. a named player)
         return key
 
 
@@ -130,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     post.to_csv(out / "bias_variants.csv", index=False, float_format="%.6g")
     lvl.to_csv(out / "bias_likes_vs_loves.csv", index=False, float_format="%.6g")
-    lines = ["Question 4: variants against Stockfish 11", ""]
+    lines = ["Question 3: variants against Stockfish 11", ""]
     for r in post.itertuples():
         lines.append(f"  {r.display_name:22s} ({r.player}) vs {r.opponent}: {r.games} games, "
                      f"W {r.wins} D {r.draws} L {r.losses} | Delta_Elo {r.delta_elo:+.1f} "

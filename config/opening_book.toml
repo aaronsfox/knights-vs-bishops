@@ -6,7 +6,7 @@
 # same limits, and the lines are chosen so that, on average, they leave the
 # position's evaluation where it started: each removal position keeps its own
 # imbalance. All engines use the same book, so differences between engines
-# (and rungs, and Stockfish 11 variants) can't come from the openings.
+# (and Stockfish 11 variants) can't come from the openings.
 #
 # Searches are single-threaded and node-limited, and the random choices use
 # a fixed seed, so the same engine build regenerates the identical book.

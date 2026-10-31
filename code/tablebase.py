@@ -1,4 +1,4 @@
-"""Stage 1 (Question 1): exact endgame value of bishop vs knight, from Syzygy.
+"""Step 1 (Question 1): exact endgame value of bishop vs knight, from Syzygy.
 
 For each material set (config/tablebase.toml) sample legal positions
 uniformly, probe the tablebases for the result with best play (WDL) and the

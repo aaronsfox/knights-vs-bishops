@@ -1,5 +1,5 @@
 # Sample positions: a spread of designs, each with its colour-flipped twin,
-# for quick checks of a new engine, rung or setting on every kind of
+# for quick checks of a new engine or setting on every kind of
 # comparison (not just the extremes, which inflates correlations).
 #
 # Use as --positions @config/sample_positions.txt

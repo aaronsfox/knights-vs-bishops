@@ -4,17 +4,17 @@ Two kinds of match, both starting every game from one of the position's
 opening-book lines, each line played ``games_per_line`` times with colours
 swapped in pairs (50 lines x 10 games = 500 games per position by default):
 
-* **Self-play** (Stage 2 and the strength ladder): two copies of one player,
+* **Self-play** (Step 4, the removal matrix): two copies of one player,
   ``<player>_a`` and ``<player>_b``. Swapping the copies does not move the
   material, so colour balance comes from each position's colour-flipped
   twin (positions.py); the analysis pools the two.
-* **Player vs opponent** (Stage 3): e.g. a manipulated Stockfish 11 build
+* **Player vs opponent** (Step 3): e.g. a manipulated Stockfish 11 build
   against the base build, from the standard position. Here swapping colours
   does balance the variant's colour.
 
-A player is an engine folder under engines/ or a strength-ladder rung from
-``[rungs]`` in config/selfplay.toml (an engine at a fixed node budget per
-move).
+A player is an engine folder under engines/ or a named player from
+``[rungs]`` in config/selfplay.toml (an engine with a fixed node budget per
+move, its own time control or extra UCI options; none are defined by default).
 
 Subcommands
 -----------
@@ -116,10 +116,10 @@ class MatchSettings:
 @dataclass(frozen=True)
 class Player:
     """An engine as it plays: the engine's manifest plus, for a
-    strength-ladder rung, an optional fixed node budget per move, its own
+    named player, an optional fixed node budget per move, its own
     time control and extra UCI options (e.g. UCI_LimitStrength/UCI_Elo)."""
 
-    key: str                  # engine folder or rung name; used in file names and PGNs
+    key: str                  # engine folder or named player; used in file names and PGNs
     cfg: EngineConfig
     nodes: int = 0            # 0 = no node limit
     tc: str | None = None     # None = the match time control
@@ -133,7 +133,7 @@ class Player:
 
 
 def load_player(config: dict[str, Any], key: str) -> Player:
-    """A rung from [rungs] in the config, or an engine folder."""
+    """A named player from [rungs] in the config, or an engine folder."""
     rung = config.get("rungs", {}).get(key)
     if rung is not None:
         return Player(key, load_engine_config(rung["engine"]), int(rung.get("nodes", 0)),
@@ -742,7 +742,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     r = sub.add_parser("run", parents=[common], help="play the games for some positions")
     r.add_argument("--player", required=True,
-                   help="engine folder under engines/ or a rung in [rungs]")
+                   help="engine folder under engines/ or a named player in [rungs]")
     r.add_argument("--opponent", help="play against this player instead of self-play")
     r.add_argument("--positions", default="removal",
                    help="ids or groups, e.g. removal, key, start,c1-b8, or @file")

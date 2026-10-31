@@ -174,37 +174,3 @@ def weighted_logistic(x: np.ndarray, y: np.ndarray, n: np.ndarray, degree: int =
         return 1 / (1 + np.exp(-(np.vander(np.atleast_1d(xn), degree + 1, increasing=True) @ res.x)))
 
     return res.x, np.sqrt(np.diag(cov)), predict
-
-
-def bradley_terry(pairs: pd.DataFrame, anchor: str) -> pd.DataFrame:
-    """Elo ratings from pairwise results by maximum likelihood (logistic
-    Bradley-Terry with draws as half points), anchored so ``anchor`` = 0.
-
-    ``pairs`` has columns a, b, points_a, games (one row per pairing, games
-    already deflated by any design effect if wanted). Returns rating and SE
-    per player."""
-    players = sorted(set(pairs.a) | set(pairs.b))
-    if anchor not in players:
-        raise ValueError(f"anchor {anchor!r} has no games")
-    free = [p for p in players if p != anchor]
-    idx = {p: i for i, p in enumerate(free)}
-    a = pairs.a.map(lambda p: idx.get(p, -1)).to_numpy()
-    b = pairs.b.map(lambda p: idx.get(p, -1)).to_numpy()
-    s = pairs.points_a.to_numpy(float)
-    n = pairs.games.to_numpy(float)
-    k = np.log(10) / 400
-
-    def rating(theta, i):
-        return np.where(i >= 0, theta[np.maximum(i, 0)], 0.0)
-
-    def nll(theta):
-        d = rating(theta, a) - rating(theta, b)
-        eta = k * d
-        return -(s * eta - n * np.logaddexp(0, eta)).sum()
-
-    res = optimize.minimize(nll, np.zeros(len(free)), method="BFGS")
-    hess_inv = res.hess_inv if isinstance(res.hess_inv, np.ndarray) else np.eye(len(free))
-    se = np.sqrt(np.clip(np.diag(hess_inv), 0, None))
-    out = [{"player": anchor, "elo": 0.0, "elo_se": 0.0}]
-    out += [{"player": p, "elo": float(res.x[i]), "elo_se": float(se[i])} for p, i in idx.items()]
-    return pd.DataFrame(out).sort_values("elo", ascending=False).reset_index(drop=True)
