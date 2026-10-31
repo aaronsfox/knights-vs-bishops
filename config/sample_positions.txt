@@ -2,7 +2,7 @@
 # for quick checks of a new engine, rung or setting on every kind of
 # comparison (not just the extremes, which inflates correlations).
 #
-# Use as --positions @config/pilot_positions.txt
+# Use as --positions @config/sample_positions.txt
 
 start                    # standard position (control)
 f2  f7                   # pawn odds
