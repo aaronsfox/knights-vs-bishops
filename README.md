@@ -67,7 +67,7 @@ knight), `b1-c1-c8-f8` (White keeps BN, Black keeps NN), `f2` (pawn odds).
 Groups: `control`, `1v1` (16), `2v2` (36), `pawn_odds` (4), `removal`
 (the 52 removal cells), `key` (29 cells for the ladder) and `all` (57). Any
 `--positions` option takes ids, groups or `@file`
-(e.g. `@config/pilot_positions.txt`).
+(e.g. `@config/sample_positions.txt`).
 
 **Colour balance.** In self-play both sides are the same engine, so
 swapping the engine copies doesn't move the material: in `c1-b8` the bishop

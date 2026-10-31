@@ -7,10 +7,10 @@
 # then, once every task has finished:
 #   python code/opening_book_generator.py collect
 #
-# For a list of positions instead of all 57 (e.g. the pilot), set POSITIONS
+# For a list of positions instead of all 57 (e.g. the sample positions), set POSITIONS
 # to anything --positions accepts; task i then takes the i-th block of
 # POSITIONS_PER_TASK positions from the list:
-#   sbatch --array=0-13 --export=ALL,POSITIONS=@config/pilot_positions.txt,POSITIONS_PER_TASK=1 \
+#   sbatch --array=0-13 --export=ALL,POSITIONS=@config/sample_positions.txt,POSITIONS_PER_TASK=1 \
 #       jobs/opening_book_array.slurm
 #
 # Settings come from config/opening_book.toml. In Chess960 the book cost

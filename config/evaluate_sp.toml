@@ -17,8 +17,8 @@ stockfish   = [10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_00
 caissa      = [10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000]
 # Stockfish 11 reports centipawns only (no WDL); used for checks, not E.
 sf11        = [10_000, 100_000, 1_000_000, 10_000_000]
-# An Lc0 node is a full network evaluation. Lc0 runs on a GPU; the pilot
-# confirms the top budget (1e6) fits the time available.
+# An Lc0 node is a full network evaluation. Lc0 runs on a GPU; check on the
+# sample positions that the top budget (1e6) fits the time available.
 lc0         = [100, 1_000, 10_000, 100_000, 1_000_000]
 
 [multipv]

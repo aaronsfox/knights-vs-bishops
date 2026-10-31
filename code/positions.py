@@ -248,7 +248,7 @@ def parse_position_spec(spec: str) -> list[str]:
     """Position ids from a spec, in the registry order without duplicates.
 
     Accepts ids and group names separated by commas ("start,c1-b8",
-    "2v2,pawn_odds", "all"), or a file of them ("@config/pilot_positions.txt",
+    "2v2,pawn_odds", "all"), or a file of them ("@config/sample_positions.txt",
     one or more per line, '#' starts a comment).
     """
     spec = spec.strip()

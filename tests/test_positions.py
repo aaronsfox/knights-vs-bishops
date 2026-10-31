@@ -78,8 +78,8 @@ def test_key_group_has_every_twin():
     assert all(P.get_position(i).twin_id in key for i in key)
 
 
-def test_pilot_file_pairs_twins():
-    ids = set(P.parse_position_spec("@config/pilot_positions.txt"))
+def test_sample_file_pairs_twins():
+    ids = set(P.parse_position_spec("@config/sample_positions.txt"))
     assert all(P.get_position(i).twin_id in ids for i in ids)
 
 

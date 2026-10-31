@@ -23,7 +23,7 @@ only.
 - `MinibatchSize = 256`: a fixed batch size, so the search gathers positions
   for the network the same way every run.
 
-Rerun a few pilot positions on the GPU to confirm results reproduce exactly.
+Rerun a few sample positions on the GPU to confirm results reproduce exactly.
 
 ## Install on the Linux cluster (GPU build)
 
