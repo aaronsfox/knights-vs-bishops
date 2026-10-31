@@ -135,8 +135,8 @@ cells to ~3,000 games per comparison as a second batch.
 
 ```bash
 sbatch --export=ALL,PLAYER=stockfish jobs/selfplay_array.slurm
-sbatch --array=0-7 --time=05:00:00 \
-    --export=ALL,PLAYER=stockfish,POSITIONS=key,BATCH=b2,GAMES_PER_LINE=40 jobs/selfplay_array.slurm
+sbatch --array=0-7 --time=03:00:00 \
+    --export=ALL,PLAYER=stockfish,POSITIONS=key,BATCH=b2,GAMES_PER_LINE=20 jobs/selfplay_array.slurm
 python code/selfplay.py collect
 python code/analyse_removal.py
 ```

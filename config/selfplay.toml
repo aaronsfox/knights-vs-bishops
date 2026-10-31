@@ -13,8 +13,9 @@
 #               python code/selfplay.py run --player sf11_b050 --opponent sf11 --positions start
 #
 # Topping up the key comparisons to ~3,000 games each: run the key cells
-# again as a separate batch, e.g. --positions key --batch b2 --games-per-line 40
-# (another 2,000 games per position); collect pools the batches.
+# again as a separate batch, e.g. --positions key --batch b2 --games-per-line 20
+# (another 1,000 games per position, so 1,500 per position and 3,000 per
+# comparison of a position and its twin); collect pools the batches.
 
 [output]
 # Relative to the repository root.

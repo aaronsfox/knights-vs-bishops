@@ -34,7 +34,7 @@ Examples
 --------
     python code/selfplay.py run --player stockfish --positions start,c1-b8 --concurrency 16
     python code/selfplay.py run --player sf11_b050 --opponent sf11 --positions start
-    python code/selfplay.py run --player stockfish --positions key --batch b2 --games-per-line 40
+    python code/selfplay.py run --player stockfish --positions key --batch b2 --games-per-line 20
     python code/selfplay.py collect
 """
 
