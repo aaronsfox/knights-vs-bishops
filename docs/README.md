@@ -26,4 +26,5 @@ locked, so the repository records the plan the results were produced under.
 | Variants change the constants everywhere, not only in evaluation | `patch_sf11.py` | The engine believes its values in search (SEE, pruning) too |
 | Pawn equivalents use each engine's own pawn-odds games | `analyse_removal.py` | Puts engines on one scale despite different WDL models; human games use their own pawn-up spells |
 | The strength ladder (reduced-strength Stockfish, Maia-3) is dropped | plans | Human games stratified by rating answer the strength question directly |
-| Tablebases only for endgames reached in human games | `tablebase.py` | The question is about decisions during play; sampled endgames add theory, not decisions |
+| No tablebase analysis; endgames judged by real game outcomes | plans | The question is about decisions during play; `tablebase.py` stays as an option |
+| Human outcomes compared with the score expected from both ratings | `explore_human_pilot.py` | Strong players choose their exchanges, so raw results would credit the piece for the player |

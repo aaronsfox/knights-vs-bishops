@@ -1,10 +1,8 @@
-"""Exact endgame verdicts from Syzygy tables (used in Question 1c).
+"""Exact endgame value from Syzygy tables (optional; not in the current plan).
 
-In the current plan the tablebases give the exact result of the minor-piece
-endgames reached in human games (Step 1, analysis 1c); probing a list of
-positions from those games is still to add. The sampling mode below, which
-draws uniform random positions for swapped material pairs, is kept as an
-optional theoretical baseline but is not part of the planned analyses.
+The current plan judges endgames by the outcomes of real games (Step 1,
+analysis 1c). This sampling mode, which draws uniform random positions for
+swapped material pairs, is kept as an optional theoretical baseline.
 
 
 For each material set (config/tablebase.toml) sample legal positions

@@ -1,6 +1,6 @@
-# tablebase: Syzygy settings. The tables give exact verdicts for the endgames
-# reached in human games (Step 1, Question 1c). The [[pairs]] below drive the
-# optional sampling mode (a theoretical baseline, not in the current plan).
+# tablebase: Syzygy settings for tablebase.py, which is optional and not part
+# of the current plan (endgames are judged by the outcomes of real games). The
+# [[pairs]] below drive its sampling mode, a theoretical baseline.
 #
 # Each material set is named White v Black with White the strong side (the
 # side with the extra pawns, or with the bishop in a direct contest), e.g.
