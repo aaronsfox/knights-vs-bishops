@@ -49,38 +49,62 @@ By rating band:
   2400+        26         0.692308            0.538
 
 4. EXCHANGE OPPORTUNITIES (a defended minor can be taken by the other type)
-Plies with BxN possible: 39,161, taken 14.4%; with NxB possible: 7,676, taken 30.3%
-By when it arose:
-       phase  bxn_n  bxn_taken  nxb_n  nxb_taken
-  moves 1-10  13349      0.108    651      0.445
-       11-20  17356      0.148   3763      0.317
-       21-30   6446      0.179   2283      0.257
-       31-40   1443      0.238    643      0.291
-         41+    567      0.220    336      0.199
+An episode = consecutive turns of one player with that capture available; taken = played it.
+BxN: 14,295 episodes, taken in 40.0% (median 2 turn(s) available)
+NxB: 4,781 episodes, taken in 54.3% (median 1 turn(s) available)
+By when the episode began:
+       phase capture  episodes  taken
+  moves 1-10     BxN      5362  0.366
+       11-20     BxN      5693  0.414
+       21-30     BxN      2323  0.431
+       31-40     BxN       617  0.460
+         41+     BxN       300  0.413
+  moves 1-10     NxB       585  0.680
+       11-20     NxB      2397  0.573
+       21-30     NxB      1211  0.481
+       31-40     NxB       375  0.469
+         41+     NxB       213  0.300
 
 5. OUTCOMES OF IMBALANCES (first spell of each kind per game; side with more bishops, or the pawn)
 Residual = score minus the score expected from both ratings and White's edge; Elo ~ 695 x residual.
-                              group    n  score  expected  residual_pp  residual_lo  residual_hi  elo_approx  focal_rating_gap  draw_rate  pawns_equiv
-                      Clean pawn up 2731  0.622     0.531        9.099        7.651       10.546      63.235            27.166      0.173        1.000
-                              B v N 1194  0.506     0.503        0.295       -1.960        2.550       2.049             4.050      0.198        0.032
-      B v N, pawns level, 10+ moves  170  0.485     0.512       -2.638       -8.567        3.291     -18.331            12.653      0.253       -0.290
-                            BB v BN 1003  0.577     0.522        5.480        3.040        7.919      38.083            19.571      0.184        0.602
-    BB v BN, pawns level, 10+ moves  123  0.577     0.535        4.212       -2.806       11.230      29.274            23.911      0.179        0.463
-                            BB v NN  170  0.568     0.526        4.199       -2.255       10.654      29.186            20.106      0.088        0.462
-    BB v NN, pawns level, 10+ moves   24  0.562     0.577       -1.430      -16.262       13.402      -9.939            57.708      0.208       -0.157
-                          BBN v BNN 2083  0.527     0.510        1.721       -0.003        3.444      11.959             8.814      0.133        0.189
-  BBN v BNN, pawns level, 10+ moves  299  0.505     0.506       -0.134       -4.695        4.428      -0.929             4.177      0.100       -0.015
-                            BN v NN  476  0.464     0.489       -2.468       -6.000        1.064     -17.153            -6.553      0.168       -0.271
-    BN v NN, pawns level, 10+ moves   57  0.474     0.487       -1.369      -11.321        8.584      -9.513           -20.175      0.211       -0.150
-Lichess evaluation at the start of the imbalance (bishop side's view), where present (67.2% of spells): median +13 cp
+                   group    n  score  expected  residual_pp  residual_lo  residual_hi  elo_approx  focal_rating_gap  draw_rate  pawns_equiv
+           Clean pawn up 2731  0.622     0.531        9.099        7.651       10.546      63.235            27.166      0.173        1.000
+                   B v N 1194  0.506     0.503        0.295       -1.960        2.550       2.049             4.050      0.198        0.032
+      B v N, pawns level  668  0.489     0.495       -0.574       -3.584        2.437      -3.989            -3.901      0.223       -0.063
+                 BB v BN 1003  0.577     0.522        5.480        3.040        7.919      38.083            19.571      0.184        0.602
+    BB v BN, pawns level  682  0.581     0.532        4.836        1.924        7.749      33.611            28.070      0.196        0.532
+                 BB v NN  170  0.568     0.526        4.199       -2.255       10.654      29.186            20.106      0.088        0.462
+    BB v NN, pawns level  120  0.592     0.538        5.374       -2.214       12.962      37.350            27.267      0.083        0.591
+               BBN v BNN 2083  0.527     0.510        1.721       -0.003        3.444      11.959             8.814      0.133        0.189
+  BBN v BNN, pawns level 1709  0.526     0.512        1.413       -0.497        3.322       9.819            10.556      0.133        0.155
+                 BN v NN  476  0.464     0.489       -2.468       -6.000        1.064     -17.153            -6.553      0.168       -0.271
+    BN v NN, pawns level  341  0.460     0.474       -1.387       -5.546        2.773      -9.637           -22.909      0.182       -0.152
+Fractional-logit edge of the focal side in Elo: adjusted for ratings and White's edge; and also for the Lichess evaluation at the start (the edge beyond what the engine already sees):
+                   group    n  elo_rating_adj  elo_rating_adj_se  n_eval  elo_eval_adj  elo_eval_adj_se  eval_coef  median_eval_cp
+           Clean pawn up 2731            75.7                6.7    1868          -5.9              9.6        1.0            74.0
+      B v N, pawns level  668            -4.6               12.5     463          -7.0             15.2        0.6             0.0
+    BB v BN, pawns level  682            38.2               12.8     451          10.9             16.9        1.0            35.0
+    BB v NN, pawns level  120            44.4               34.2      78          28.6             48.8        1.4            41.5
+  BBN v BNN, pawns level 1709             9.9                8.7    1148         -11.1             11.3        1.0            19.0
+    BN v NN, pawns level  341            -8.1               18.8     238          -2.2             23.4        0.5             0.0
+
+5b. PAYOFF OF THE BISHOP-FOR-KNIGHT DECISION (first minor exchange per game)
+elo_eval_adj = edge beyond ratings and the evaluation just BEFORE the exchange: the total effect of ending up with the bishop.
+                                     group    n  residual_pp  elo_rating_adj  elo_rating_adj_se  n_eval  elo_eval_adj  elo_eval_adj_se  median_eval_cp
+  Kept the bishop (first B-for-N exchange) 2754          1.6            13.5                6.9    1815           8.2              8.7             0.0
+                       ... and so the pair 2542          1.3            10.3                7.2    1674           5.8              9.0             0.0
+                      ... no pair involved  212          5.6            53.8               25.7     141          48.2             35.3             0.0
+                         ... in moves 1-10 1348          1.0             8.5                9.9     872           4.5             12.2             0.0
+                         ... after move 10 1406          2.2            18.2                9.7     943          10.6             12.4             7.0
+         Control: started a same-type swap 3158         -0.3            -2.2                6.2    2184          -6.6              7.6             7.0
 
 6. MINOR-PIECE ENDGAMES REACHED
 Per 100 games: B v N 7.6, N v N 3.7, B v B same colour 3.1, B v B opposite colour 2.4
 Bishop side's residual in B v N endgames:
-                              group   n  score  expected  residual_pp  residual_lo  residual_hi  elo_approx  focal_rating_gap  draw_rate
-                         B v N, all 529  0.528     0.506        2.219       -1.068        5.506      15.424             6.896      0.259
-                 B v N, pawns level 230  0.528     0.508        2.017       -2.906        6.940      14.016             7.204      0.352
-  B v N, level, pawns on both wings 212  0.528     0.509        1.944       -3.214        7.103      13.514             7.736      0.330
-             B v N, level, one wing  18  0.528     0.499        2.868      -13.897       19.632      19.930             0.944      0.611
-           B v N, level, with rooks 158  0.522     0.501        2.100       -4.107        8.307      14.595             0.063      0.310
-             B v N, level, no rooks  72  0.542     0.523        1.834       -6.087        9.755      12.745            22.875      0.444
+                                      group   n  score  expected  residual_pp  residual_lo  residual_hi  elo_approx  focal_rating_gap  draw_rate
+                         Endgame B v N, all 529  0.528     0.506        2.219       -1.068        5.506      15.424             6.896      0.259
+                 Endgame B v N, pawns level 230  0.528     0.508        2.017       -2.906        6.940      14.016             7.204      0.352
+  Endgame B v N, level, pawns on both wings 212  0.528     0.509        1.944       -3.214        7.103      13.514             7.736      0.330
+             Endgame B v N, level, one wing  18  0.528     0.499        2.868      -13.897       19.632      19.930             0.944      0.611
+           Endgame B v N, level, with rooks 158  0.522     0.501        2.100       -4.107        8.307      14.595             0.063      0.310
+             Endgame B v N, level, no rooks  72  0.542     0.523        1.834       -6.087        9.755      12.745            22.875      0.444

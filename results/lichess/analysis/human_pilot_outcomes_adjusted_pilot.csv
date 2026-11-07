@@ -1,0 +1,7 @@
+group,n,elo_rating_adj,elo_rating_adj_se,n_eval,elo_eval_adj,elo_eval_adj_se,eval_coef,median_eval_cp
+Clean pawn up,2731,75.7328,6.69515,1868,-5.9465,9.60401,1.04073,74
+"B v N, pawns level",668,-4.56953,12.4642,463,-6.9837,15.2267,0.614716,0
+"BB v BN, pawns level",682,38.1702,12.8141,451,10.9157,16.9194,0.988846,35
+"BB v NN, pawns level",120,44.3968,34.2357,78,28.5741,48.8402,1.38899,41.5
+"BBN v BNN, pawns level",1709,9.92362,8.70998,1148,-11.0513,11.2808,0.996154,19
+"BN v NN, pawns level",341,-8.09791,18.832,238,-2.20764,23.3814,0.50532,0
