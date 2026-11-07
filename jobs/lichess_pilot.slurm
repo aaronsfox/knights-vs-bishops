@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
-# Human-play pilot, part 2: extract the bishop/knight events from the games
-# parsed by lichess_games.py and write the exploratory summary.
+# Human-play pilot: stream one month of Lichess games (high-rated classical
+# by default), extract the bishop/knight events and write the exploratory
+# summary, all on a compute node (needs internet there). The month is
+# streamed and filtered as it arrives; only kept games are written.
 #
-# Part 1 streams the month and needs internet, so run it on the login node
-# first, as in the Chess960 project (nothing is downloaded to disk: the
-# export is decompressed and filtered as it streams, and only the kept games
-# are written). It reads every game's headers in the month (~100 million),
-# so use screen/tmux or nohup:
-#   python code/lichess_games.py fetch --months 2026-10 --categories classical \
-#       --min-mean-rating 2000 --tag pilot
-# (If a compute node has internet access, this job can stream it instead: it
-# runs the same fetch first and skips it when the month is already parsed.)
-#
-# Then, from the repository root (create logs/ first):
+# Submit from the repository root (create logs/ first):
 #   sbatch jobs/lichess_pilot.slurm
 #   sbatch --export=ALL,MONTH=2026-09,MIN_RATING=2200 jobs/lichess_pilot.slurm
+# The fetch is skipped when the month is already parsed, so this can also
+# follow jobs/lichess_fetch.slurm (which streams many months in parallel).
 #
 # Afterwards, commit the summary, tables, figures and the small sample PGN
 # (results/lichess/analysis/, results/lichess/events/, results/figures/,
@@ -24,7 +18,7 @@
 #SBATCH --job-name=kvb-lichess-pilot
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
-#SBATCH --time=02:00:00
+#SBATCH --time=04:00:00
 #SBATCH --output=logs/lichess_pilot_%j.out
 
 set -euo pipefail

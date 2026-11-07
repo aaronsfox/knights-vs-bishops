@@ -6,7 +6,8 @@ import chess
 import pytest
 
 import human_events as he
-from lichess_games import category, game_row, hash_fraction, header_filter, iter_games, month_range
+from lichess_games import (category, game_row, hash_fraction, header_filter, iter_chunks, iter_games,
+                           month_range, parse_parallel, parse_stream)
 
 RUY = ("1. e4 { [%eval 0.2] [%clk 0:30:00] } 1... e5 { [%clk 0:30:00] } 2. Nf3 { [%clk 0:29:50] } "
        "2... Nc6 { [%clk 0:29:40] } 3. Bb5 { [%clk 0:29:30] } 3... a6 { [%clk 0:29:20] } "
@@ -112,3 +113,13 @@ def test_designs_and_endgames():
 def test_bad_move_is_reported_not_raised():
     ev = he.game_events("bad", "1. e4 e5 2. Ke3 *")
     assert ev["games"][0]["parse_error"].startswith("ply 3")
+
+
+def test_chunked_parallel_parse_matches_serial():
+    data = (PGN * 20).encode()
+    chunks = list(iter_chunks(io.BytesIO(data), size=300))
+    assert b"".join(chunks) == data and all(c.startswith(b"[Event ") for c in chunks)
+    cats = {"blitz", "rapid", "classical"}
+    serial, n1 = parse_stream(io.StringIO(PGN * 20), "2026-10", cats, 0, 1.0)
+    par, n2 = parse_parallel(io.BytesIO(data), "2026-10", cats, 0, 1.0, workers=2, chunk_size=300)
+    assert n1 == n2 == 60 and serial.equals(par)

@@ -8,12 +8,15 @@ each file is streamed from the web (or read from a local .pgn.zst) through a
 zstd decompressor and parsed line by line. Headers are filtered as text, so
 only kept games carry their movetext forward.
 
-Needs internet access (run it on the cluster login node, as in Chess960):
-the month is streamed and filtered as it arrives, holding only the kept
-games in memory, so nothing large is written to disk. A standard month is
-far bigger than a Chess960 one (~100 million games), so the scan takes a
-while; a dropped connection restarts that month. Files already downloaded
-with wget can be read instead with --pgn-dir.
+Needs internet access (compute nodes, or the login node): the month is
+streamed and filtered as it arrives, holding only the kept games in memory,
+so nothing large is written to disk. Parsing runs at roughly 300 MB of PGN a
+second on one core, so a ~100-million-game month takes tens of minutes and
+the download usually sets the pace; a dropped connection restarts that
+month. jobs/lichess_fetch.slurm streams several months in parallel, one
+array task each. --workers parses blocks of games in parallel processes,
+which only helps when many games are kept. Files already downloaded with
+wget can be read instead with --pgn-dir.
 
 Subcommands
 -----------
@@ -238,24 +241,47 @@ def game_row(h: dict[str, str], movetext: str, month: str, kept: tuple[float, fl
     }
 
 
-def open_zst_stream(source: str) -> tuple[TextIO, object]:
-    """Text stream of a .pgn.zst from a URL or local path. Uses the
-    `zstandard` Python package if installed, else the `zstd` command."""
+def open_zst_binary(source: str) -> tuple[io.BufferedIOBase, object]:
+    """Decompressed byte stream of a .pgn.zst from a URL or local path. Uses
+    the `zstandard` Python package if installed, else the `zstd` command."""
     try:
         import zstandard  # type: ignore
         raw = urllib.request.urlopen(source) if source.startswith("http") else open(source, "rb")
-        reader = zstandard.ZstdDecompressor().stream_reader(raw, read_size=1 << 20)
-        return io.TextIOWrapper(reader, encoding="utf-8", errors="replace"), raw
+        return zstandard.ZstdDecompressor().stream_reader(raw, read_size=1 << 20), raw
     except ImportError:
         if not shutil.which("zstd"):
             raise SystemExit("need the zstandard package (pip install zstandard) or the zstd command")
         cmd = f"curl -sSfL '{source}' | zstd -dc" if source.startswith("http") else f"zstd -dc '{source}'"
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-        return io.TextIOWrapper(proc.stdout, encoding="utf-8", errors="replace"), proc
+        return proc.stdout, proc  # type: ignore[return-value]
+
+
+def open_zst_stream(source: str) -> tuple[TextIO, object]:
+    """Text stream of a .pgn.zst (see open_zst_binary)."""
+    binary, handle = open_zst_binary(source)
+    return io.TextIOWrapper(binary, encoding="utf-8", errors="replace"), handle
+
+
+def iter_chunks(binary: io.BufferedIOBase, size: int = 1 << 24) -> Iterator[bytes]:
+    """Blocks of whole games (~size bytes each), split where a line starts
+    with '[Event ', so each block can be parsed on its own."""
+    buf = b""
+    while True:
+        data = binary.read(size)
+        if not data:
+            if buf.strip():
+                yield buf
+            return
+        buf += data
+        cut = buf.rfind(b"\n[Event ")
+        if cut > 0:
+            yield buf[:cut + 1]
+            buf = buf[cut + 1:]
 
 
 def parse_stream(stream: TextIO, month: str, categories: set[str], min_mean_rating: float,
                  sample_frac: float, max_games: int = 0) -> tuple[pd.DataFrame, int]:
+    """Serial parse of a text stream."""
     rows, seen = [], 0
     for h, mt in iter_games(stream):
         seen += 1
@@ -269,12 +295,66 @@ def parse_stream(stream: TextIO, month: str, categories: set[str], min_mean_rati
     return pd.DataFrame(rows), seen
 
 
+def _parse_chunk(args: tuple[bytes, str, set[str], float, float]) -> tuple[list[dict], int]:
+    chunk, month, categories, min_mean_rating, sample_frac = args
+    rows, seen = [], 0
+    for h, mt in iter_games(io.StringIO(chunk.decode("utf-8", errors="replace"))):
+        seen += 1
+        kept = header_filter(h, categories, min_mean_rating, sample_frac)
+        if kept is not None:
+            rows.append(game_row(h, mt, month, kept))
+    return rows, seen
+
+
+def parse_parallel(binary: io.BufferedIOBase, month: str, categories: set[str],
+                   min_mean_rating: float, sample_frac: float, workers: int,
+                   max_games: int = 0, chunk_size: int = 1 << 24) -> tuple[pd.DataFrame, int]:
+    """The reader splits the stream into blocks of whole games and worker
+    processes parse them. At most 2 x workers blocks are in flight, so memory
+    stays flat however large the month is; results keep the file's order."""
+    from collections import deque
+    from multiprocessing import Pool
+    rows: list[dict] = []
+    seen, next_log = 0, 1_000_000
+    with Pool(workers) as pool:
+        pending: deque = deque()
+        chunks = iter_chunks(binary, chunk_size)
+        done = False
+        while True:
+            while not done and len(pending) < 2 * workers:
+                try:
+                    chunk = next(chunks)
+                except StopIteration:
+                    done = True
+                    break
+                pending.append(pool.apply_async(_parse_chunk, ((chunk, month, categories,
+                                                                min_mean_rating, sample_frac),)))
+            if not pending:
+                break
+            r, n = pending.popleft().get()
+            rows.extend(r)
+            seen += n
+            if seen >= next_log:
+                log.info("  %s: %d games read, %d kept", month, seen, len(rows))
+                next_log += 1_000_000
+            if max_games and len(rows) >= max_games:
+                rows = rows[:max_games]
+                break
+    return pd.DataFrame(rows), seen
+
+
 def fetch_month(month: str, out: Path, categories: set[str], min_mean_rating: float,
-                sample_frac: float, local: str | None = None, max_games: int = 0) -> Path:
+                sample_frac: float, local: str | None = None, max_games: int = 0,
+                workers: int = 1) -> Path:
     source = local or URL.format(month=month)
-    log.info("%s: reading %s", month, source)
-    stream, handle = open_zst_stream(source)
-    df, seen = parse_stream(stream, month, categories, min_mean_rating, sample_frac, max_games)
+    log.info("%s: reading %s (%d worker%s)", month, source, workers, "s" if workers > 1 else "")
+    if workers > 1:
+        binary, handle = open_zst_binary(source)
+        df, seen = parse_parallel(binary, month, categories, min_mean_rating, sample_frac,
+                                  workers, max_games)
+    else:
+        stream, handle = open_zst_stream(source)
+        df, seen = parse_stream(stream, month, categories, min_mean_rating, sample_frac, max_games)
     if isinstance(handle, subprocess.Popen):
         handle.kill() if max_games else handle.wait()
     write_parquet_atomic(df, out)
@@ -300,7 +380,8 @@ def cmd_fetch(args: argparse.Namespace) -> int:
                 local = str(cand)
             else:
                 log.warning("%s: %s not found, downloading instead", month, cand)
-        fetch_month(month, dest, cats, args.min_mean_rating, args.sample_frac, local, args.max_games)
+        fetch_month(month, dest, cats, args.min_mean_rating, args.sample_frac, local, args.max_games,
+                    args.workers)
     return 0
 
 
@@ -387,6 +468,8 @@ def build_parser() -> argparse.ArgumentParser:
     f.add_argument("--sample-frac", type=float, default=1.0,
                    help="keep this fraction of games, chosen by a hash of the game id")
     f.add_argument("--max-games", type=int, default=0, help="stop after this many kept games (testing)")
+    f.add_argument("--workers", type=int, default=1,
+                   help="processes parsing blocks of games in parallel (the stream itself is read by one)")
     f.add_argument("--overwrite", action="store_true")
     f.add_argument("--pgn-dir", help="read lichess_db_standard_rated_YYYY-MM.pgn.zst from this "
                    "folder when present (e.g. downloaded with wget), instead of streaming")

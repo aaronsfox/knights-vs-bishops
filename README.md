@@ -164,24 +164,29 @@ python code/selfplay.py collect
 python code/analyse_bias.py
 ```
 
-**5. Human games** (Step 1). Pilot: high-rated classical games from one
-month. As in the Chess960 project, `fetch` streams the month's export from
-Lichess and filters it as it goes (nothing is downloaded to disk; only kept
-games are written), so it needs internet: run it on the login node (it reads
-every game's headers, ~100 million a month, so use screen/tmux or nohup).
-Then extract the events and summarise on a compute node:
+**5. Human games** (Step 1). As in the Chess960 project, `fetch` streams a
+month's export from Lichess and filters it as it arrives (nothing large is
+written to disk; only kept games are saved), so it needs internet, which the
+compute nodes have. Pilot (high-rated classical games from one month, then
+events and the exploratory summary), in one job:
 
 ```bash
-python code/lichess_games.py fetch --months 2026-10 --categories classical \
-    --min-mean-rating 2000 --tag pilot                 # login node; streams
-sbatch jobs/lichess_pilot.slurm                        # events and summary
+sbatch jobs/lichess_pilot.slurm            # MONTH, CATEGORIES, MIN_RATING, TAG to change
 ```
 
-or run the rest by hand: `python code/lichess_games.py summarise --tag pilot`,
+For several months, stream them in parallel across nodes (one array task per
+month), then chain the next step:
+
+```bash
+jid=$(sbatch --parsable --array=0-5 --export=ALL,MONTHS=2026-05:2026-10 jobs/lichess_fetch.slurm)
+```
+
+By hand: `python code/lichess_games.py fetch --months 2026-10 --categories
+classical --min-mean-rating 2000 --tag pilot`, then `summarise --tag pilot`,
 `python code/human_events.py run --tag pilot --workers 8` and
-`python code/explore_human_pilot.py --tag pilot`. If streaming isn't
-possible, download the `.pgn.zst` with `wget` into `data/lichess/` and add
-`--pgn-dir data/lichess` to `fetch`.
+`python code/explore_human_pilot.py --tag pilot`. Without internet, download
+the `.pgn.zst` with `wget` into `data/lichess/` and add `--pgn-dir
+data/lichess`.
 
 ## Outputs
 
