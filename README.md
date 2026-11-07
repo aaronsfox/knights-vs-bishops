@@ -7,12 +7,13 @@ bishop's edge coming from the bishop pair. This project separates the single
 piece from the pair in three steps about decisions during play, which build
 one argument:
 
-- **Step 1: human play** (to build: `lichess_games.py`, ported from the
-  Chess960 project's Lichess reader; `human_events.py`; `analyse_human.py`).
-  Rated Lichess blitz, rapid and classical games by rating band: which piece
-  players give up in bishop-for-knight exchanges, whether keeping the bishop
-  or the pair pays off, and how each piece's endgames are played against
-  their exact Syzygy verdict (`code/tablebase.py`).
+- **Step 1: human play** (`code/lichess_games.py`, ported from the Chess960
+  project's Lichess reader; `code/human_events.py`;
+  `code/explore_human_pilot.py`). Rated Lichess blitz, rapid and classical
+  games by rating band: how long bishops and knights survive, which piece
+  players give up in bishop-for-knight exchanges and when they pass up the
+  chance, and how games turn out after each imbalance and in each kind of
+  minor-piece endgame.
 - **Step 2: preference engines** (`code/analyse_bias.py`). Stockfish 11
   builds that value the knight or bishop more (Aron Knightzowitsch, Hikaru
   Knightamura, Bishy Anand, Bobby Bischer, and Magnus Pairlsen for the pair)
@@ -45,7 +46,10 @@ code/
   evaluate_sp.py    screening pass: evaluate positions at a node ladder
   opening_book_generator.py  balanced opening lines from each position
   selfplay.py       engine games with fastchess (self-play, variant vs base)
-  tablebase.py      Syzygy probing (exact endgame verdicts for Step 1)
+  lichess_games.py  Step 1: download, parse and filter Lichess standard games
+  human_events.py   Step 1: bishop/knight events (survival, exchanges, imbalances, endgames)
+  explore_human_pilot.py  Step 1 pilot: exploratory summary and figures
+  tablebase.py      Syzygy probing (optional; not in the current plan)
   stats_core.py     Dirichlet posteriors with a design-effect correction
   analyse_bias.py     Question 2: variants against Stockfish 11
   analyse_removal.py  Question 3: comparisons, designs, pawn equivalents
@@ -160,13 +164,20 @@ python code/selfplay.py collect
 python code/analyse_bias.py
 ```
 
-**5. Human games** (Step 1): to build. The Lichess reader from the Chess960
-project (`lichess960.py`) will be ported to the monthly standard exports
-(`lichess_db_standard_rated_YYYY-MM.pgn.zst`): streamed or downloaded on the
-login node, filtered on headers, sampled to balance time controls and rating
-bands, then replayed by an event extractor (`human_events.py`). Endgames
-reached with 6 pieces or fewer get their exact verdict from the 3-6 piece
-Syzygy tables (path in `config/tablebase.toml`). See the analysis plan.
+**5. Human games** (Step 1). Pilot: high-rated classical games from one
+month. Download the month on the login node, then parse, extract events and
+summarise on a compute node:
+
+```bash
+mkdir -p data/lichess logs
+wget -c -P data/lichess https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst
+sbatch jobs/lichess_pilot.slurm            # MONTH, CATEGORIES, MIN_RATING, TAG to change
+```
+
+or step by step: `python code/lichess_games.py fetch --months 2026-10
+--categories classical --min-mean-rating 2000 --tag pilot --pgn-dir
+data/lichess`, then `summarise --tag pilot`, `python code/human_events.py run
+--tag pilot --workers 8` and `python code/explore_human_pilot.py --tag pilot`.
 
 ## Outputs
 
@@ -177,7 +188,8 @@ Syzygy tables (path in `config/tablebase.toml`). See the analysis plan.
 | `results/selfplay/raw/<match>/` | one gzipped PGN per position (and batch); `<match>` is the player or `<player>__vs__<opponent>` |
 | `results/selfplay/tables/` | games, positions and lines tables from `selfplay.py collect` |
 | `results/selfplay/analysis/` | `removal_*` and `bias_*` tables and summaries |
-| `results/tablebase/` | sampled positions and per-set summaries |
+| `results/lichess/` | parsed games (`raw/`, not committed), event tables (`events/`), summaries and tables (`analysis/`) |
+| `results/tablebase/` | sampled positions and per-set summaries (optional) |
 | `results/figures/` | figures in the `plot_style.py` style |
 
 ## Statistics

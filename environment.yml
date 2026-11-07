@@ -11,7 +11,7 @@
 # the rest instead:
 #   conda create -n kvb python=3.12 -y
 #   conda activate kvb
-#   pip install chess numpy pandas pyarrow scipy pytest matplotlib cairosvg
+#   pip install chess numpy pandas pyarrow scipy pytest matplotlib cairosvg zstandard
 name: kvb
 channels:
   - conda-forge
@@ -30,3 +30,5 @@ dependencies:
   - pip:
       # python-chess is published on PyPI as "chess"
       - chess>=1.11
+      # Lichess exports are zstd-compressed (code/lichess_games.py)
+      - zstandard>=0.22

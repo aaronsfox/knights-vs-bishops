@@ -10,6 +10,7 @@ dependencies = [
     "pandas>=2.2",
     "pyarrow>=15",
     "scipy>=1.11",
+    "zstandard>=0.22",
 ]
 
 [project.optional-dependencies]

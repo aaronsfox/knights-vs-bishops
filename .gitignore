@@ -16,6 +16,9 @@ results/*
 !results/tablebase/
 !results/figures/
 !results/pilot/
+!results/lichess/
+results/lichess/raw/
+data/
 results/tablebase/tables/tablebase_positions.parquet
 logs/
 *.tmp
