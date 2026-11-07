@@ -63,9 +63,11 @@ COLOURS = {"B": "#104485", "N": "#f17f03"}
 
 def load(out_dir: Path, tag: str | None) -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
     suffix = f"_{tag}" if tag else ""
-    raw = sorted((out_dir / "raw").glob(f"lichess_*{suffix}.parquet"))
+    raw = sorted((out_dir / "games").glob(f"lichess_*{suffix}.parquet")) or \
+        sorted((out_dir / "raw").glob(f"lichess_*{suffix}.parquet"))
     if not raw:
-        raise SystemExit(f"no games under {out_dir / 'raw'} for tag {tag!r}")
+        raise SystemExit(f"no games under {out_dir / 'games'} or {out_dir / 'raw'} for tag {tag!r}"
+                         " (run: python code/lichess_games.py headers --tag ...)")
     cols = ["month", "game_id", "white_id", "black_id", "white_elo", "black_elo",
             "white_rating_diff", "black_rating_diff", "white_title", "black_title", "score_white",
             "category", "termination", "plies", "has_clock", "has_eval", "white_berserk",
@@ -134,6 +136,51 @@ def residual_row(x: pd.DataFrame, label: str) -> dict:
             "residual_hi": 100 * (x.residual.mean() + 1.96 * se),
             "elo_approx": 695 * x.residual.mean(), "focal_rating_gap": x.focal_rating_gap.mean(),
             "draw_rate": (x.score == 0.5).mean()}
+
+
+# ---------------------------------------------------------------------------
+# Models
+# ---------------------------------------------------------------------------
+
+K_ELO = 400 / np.log(10)
+
+
+def lichess_winp(cp: np.ndarray) -> np.ndarray:
+    """Lichess's expected score from a centipawn evaluation (clipped at +/-10 pawns)."""
+    return 1 / (1 + np.exp(-0.00368208 * np.clip(cp, -1000, 1000)))
+
+
+def frac_logit(y: np.ndarray, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Fractional logit (score in [0, 1]) with sandwich standard errors."""
+    def nll(b: np.ndarray) -> float:
+        p = np.clip(1 / (1 + np.exp(-(X @ b))), 1e-9, 1 - 1e-9)
+        return -float(np.sum(y * np.log(p) + (1 - y) * np.log(1 - p)))
+    b = optimize.minimize(nll, np.zeros(X.shape[1]), method="BFGS").x
+    p = 1 / (1 + np.exp(-(X @ b)))
+    H = (X * (p * (1 - p))[:, None]).T @ X
+    u = X * (y - p)[:, None]
+    Hi = np.linalg.inv(H)
+    return b, np.sqrt(np.diag(Hi @ (u.T @ u) @ Hi))
+
+
+def adjusted_effect(x: pd.DataFrame, edge: float, label: str, eval_col: str = "eval_cp") -> dict:
+    """The focal side's edge in Elo beyond (1) the two ratings and White's edge,
+    and (2) also the Lichess evaluation in `eval_col` (games that have one)."""
+    gap = (x.focal_rating_gap + np.where(x.focal == "white", edge, -edge)).to_numpy(float) / K_ELO
+    row: dict = {"group": label, "n": len(x)}
+    if len(x) >= 20:
+        b, se = frac_logit(x.score.to_numpy(float), np.column_stack([np.ones(len(x)), gap]))
+        row.update(elo_rating_adj=b[0] * K_ELO, elo_rating_adj_se=se[0] * K_ELO)
+    ev = np.where(x.focal == "white", x[eval_col], -x[eval_col])
+    m = ~np.isnan(ev.astype(float))
+    row["n_eval"] = int(m.sum())
+    if m.sum() >= 20:
+        w = lichess_winp(ev[m].astype(float))
+        X = np.column_stack([np.ones(m.sum()), gap[m], np.log(w / (1 - w))])
+        b, se = frac_logit(x.score.to_numpy(float)[m], X)
+        row.update(elo_eval_adj=b[0] * K_ELO, elo_eval_adj_se=se[0] * K_ELO,
+                   eval_coef=b[2], median_eval_cp=float(np.median(ev[m])))
+    return row
 
 
 # ---------------------------------------------------------------------------
@@ -304,24 +351,28 @@ def run(out_dir: Path, tag: str | None, fig_dir: Path) -> str:
         L += ["By rating band:"] + ["  " + s for s in bd.round(3).to_string().splitlines()]
         tables["exchanges_by_phase"] = ph.reset_index()
 
-    # 4. Opportunities
+    # 4. Opportunities, as episodes: consecutive turns of the same player with
+    # the capture available (a pin can offer BxN for many moves in a row).
     op = ev["opportunities"][ev["opportunities"].game_id.isin(ids)].copy()
     if len(op):
-        op["phase"] = pd.cut(op.ply, PHASES, labels=PHASE_LABELS, right=True)
-        only_bxn = op[op.bxn_available & ~op.nxb_available]
-        only_nxb = op[op.nxb_available & ~op.bxn_available]
-        L += ["", "4. EXCHANGE OPPORTUNITIES (a defended minor can be taken by the other type)",
-              f"Plies with BxN possible: {len(only_bxn):,}, taken {pct((only_bxn.played == 'BxN').mean())}; "
-              f"with NxB possible: {len(only_nxb):,}, taken {pct((only_nxb.played == 'NxB').mean())}"]
+        op = op.sort_values(["game_id", "side", "ply"])
         rows = []
-        for ph_label, sub in op.groupby("phase", observed=False):
-            a = sub[sub.bxn_available & ~sub.nxb_available]
-            b = sub[sub.nxb_available & ~sub.bxn_available]
-            rows.append({"phase": ph_label, "bxn_n": len(a), "bxn_taken": (a.played == "BxN").mean(),
-                         "nxb_n": len(b), "nxb_taken": (b.played == "NxB").mean()})
-        t = pd.DataFrame(rows)
+        L += ["", "4. EXCHANGE OPPORTUNITIES (a defended minor can be taken by the other type)",
+              "An episode = consecutive turns of one player with that capture available; taken = played it."]
+        for kind, col in (("BxN", "bxn_available"), ("NxB", "nxb_available")):
+            o = op[op[col]].copy()
+            o["episode"] = (o.groupby(["game_id", "side"]).ply.diff() != 2).cumsum()
+            e = o.groupby("episode").agg(taken=("played", lambda v: (v == kind).any()),
+                                          turns=("ply", "size"), start=("ply", "first"))
+            e["phase"] = pd.cut(e.start, PHASES, labels=PHASE_LABELS, right=True)
+            L.append(f"{kind}: {len(e):,} episodes, taken in {pct(e.taken.mean())} "
+                     f"(median {e.turns.median():.0f} turn(s) available)")
+            t = e.groupby("phase", observed=False).agg(episodes=("taken", "size"), taken=("taken", "mean"))
+            t.insert(0, "capture", kind)
+            rows.append(t.reset_index())
+        t = pd.concat(rows, ignore_index=True)
         tables["opportunities_by_phase"] = t
-        L += ["By when it arose:"] + ["  " + s for s in t.round(3).to_string(index=False).splitlines()]
+        L += ["By when the episode began:"] + ["  " + s for s in t.round(3).to_string(index=False).splitlines()]
 
     # 5. Outcomes of imbalances
     sp = ev["spells"][ev["spells"].game_id.isin(ids)]
@@ -336,8 +387,7 @@ def run(out_dir: Path, tag: str | None, fig_dir: Path) -> str:
         for d, sub in mi.groupby("design"):
             if len(sub) >= 30:
                 out_rows.append(residual_row(sub, d))
-                out_rows.append(residual_row(sub[(sub.pawn_diff == 0) & (sub.length >= 20)],
-                                             f"{d}, pawns level, 10+ moves"))
+                out_rows.append(residual_row(sub[sub.pawn_diff == 0], f"{d}, pawns level"))
         o = pd.DataFrame(out_rows)
         if len(o) and pu.get("n", 0):
             o["pawns_equiv"] = o.residual_pp / pu["residual_pp"]
@@ -346,12 +396,45 @@ def run(out_dir: Path, tag: str | None, fig_dir: Path) -> str:
               "Residual = score minus the score expected from both ratings and White's edge; Elo ~ 695 x residual."]
         if len(o):
             L += ["  " + s for s in o.round(3).to_string(index=False).splitlines()]
-        ev_share = mi.eval_cp.notna().mean() if len(mi) else np.nan
-        if len(mi) and mi.eval_cp.notna().any():
-            m = mi[mi.eval_cp.notna()]
-            ev_focal = np.where(m.focal == "white", m.eval_cp, -m.eval_cp)
-            L.append(f"Lichess evaluation at the start of the imbalance (bishop side's view), where present "
-                     f"({pct(ev_share)} of spells): median {np.median(ev_focal):+.0f} cp")
+        # Adjusted models: ratings + White's edge, then also the Lichess
+        # evaluation at the start of the spell (which already prices in the
+        # engine's view of the pieces, so that column is the edge beyond it).
+        adj = [adjusted_effect(pawn, edge, "Clean pawn up")]
+        adj += [adjusted_effect(sub[sub.pawn_diff == 0], edge, f"{d}, pawns level")
+                for d, sub in mi.groupby("design") if (sub.pawn_diff == 0).sum() >= 30]
+        a = pd.DataFrame(adj)
+        tables["outcomes_adjusted"] = a
+        L += ["Fractional-logit edge of the focal side in Elo: adjusted for ratings and White's edge; and also "
+              "for the Lichess evaluation at the start (the edge beyond what the engine already sees):"]
+        L += ["  " + s for s in a.round(1).to_string(index=False).splitlines()]
+
+    # 5b. Payoff of the bishop-for-knight decision: the first B-for-N exchange
+    # in each game, scored for the player who kept the bishop, adjusted for the
+    # evaluation just before the exchange began.
+    exch = ev["exchanges"][ev["exchanges"].game_id.isin(ids)]
+    if len(exch):
+        first = exch.sort_values("ply").groupby("game_id").head(1)
+        bn = first[first.kind == "B for N"].assign(
+            focal=lambda d: np.where(d.bishop_giver == "white", "black", "white"))
+        same = first[first.kind != "B for N"].assign(focal=lambda d: d.initiator)
+        rows = []
+        for label, d in (("Kept the bishop (first B-for-N exchange)", bn),
+                         ("  ... and so the pair", bn[bn.pair_broken == True]),  # noqa: E712
+                         ("  ... no pair involved", bn[bn.pair_broken == False]),  # noqa: E712
+                         ("  ... in moves 1-10", bn[bn.ply <= 20]),
+                         ("  ... after move 10", bn[bn.ply > 20]),
+                         ("Control: started a same-type swap", same)):
+            if len(d):
+                x = focal_frame(d, g, edge)
+                rows.append({**residual_row(x, label), **adjusted_effect(x, edge, label)})
+        t = pd.DataFrame(rows)
+        tables["exchange_payoff"] = t
+        L += ["", "5b. PAYOFF OF THE BISHOP-FOR-KNIGHT DECISION (first minor exchange per game)",
+              "elo_eval_adj = edge beyond ratings and the evaluation just BEFORE the exchange: the total effect "
+              "of ending up with the bishop."]
+        L += ["  " + s for s in t[["group", "n", "residual_pp", "elo_rating_adj", "elo_rating_adj_se", "n_eval",
+                                    "elo_eval_adj", "elo_eval_adj_se", "median_eval_cp"]].round(1)
+              .to_string(index=False).splitlines()]
 
     # 6. Endgames
     eg = ev["endgames"][ev["endgames"].game_id.isin(ids)]
@@ -360,12 +443,12 @@ def run(out_dir: Path, tag: str | None, fig_dir: Path) -> str:
         L += ["", "6. MINOR-PIECE ENDGAMES REACHED",
               "Per 100 games: " + ", ".join(f"{k} {100 * v / len(g):.1f}" for k, v in eg.type.value_counts().items())]
         bvn = x[x.type == "B v N"]
-        rows = [residual_row(bvn, "B v N, all"),
-                residual_row(bvn[bvn.pawn_diff == 0], "B v N, pawns level"),
-                residual_row(bvn[(bvn.pawn_diff == 0) & bvn.pawns_both_wings], "B v N, level, pawns on both wings"),
-                residual_row(bvn[(bvn.pawn_diff == 0) & ~bvn.pawns_both_wings], "B v N, level, one wing"),
-                residual_row(bvn[(bvn.pawn_diff == 0) & (bvn.rooks_each == 1)], "B v N, level, with rooks"),
-                residual_row(bvn[(bvn.pawn_diff == 0) & (bvn.rooks_each == 0)], "B v N, level, no rooks")]
+        rows = [residual_row(bvn, "Endgame " + "B v N, all"),
+                residual_row(bvn[bvn.pawn_diff == 0], "Endgame " + "B v N, pawns level"),
+                residual_row(bvn[(bvn.pawn_diff == 0) & bvn.pawns_both_wings], "Endgame " + "B v N, level, pawns on both wings"),
+                residual_row(bvn[(bvn.pawn_diff == 0) & ~bvn.pawns_both_wings], "Endgame " + "B v N, level, one wing"),
+                residual_row(bvn[(bvn.pawn_diff == 0) & (bvn.rooks_each == 1)], "Endgame " + "B v N, level, with rooks"),
+                residual_row(bvn[(bvn.pawn_diff == 0) & (bvn.rooks_each == 0)], "Endgame " + "B v N, level, no rooks")]
         e = pd.DataFrame(rows)
         tables["endgames"] = e
         L += ["Bishop side's residual in B v N endgames:"] + ["  " + s for s in e.round(3).to_string(index=False).splitlines()]

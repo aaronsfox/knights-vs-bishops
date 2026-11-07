@@ -25,6 +25,9 @@ fetch      Download and parse months, e.g. --months 2026-10. Writes
            are skipped, so rerunning resumes).
 summarise  Counts for scoping: games by category, rating band, time control,
            termination; how many games have clocks and Lichess evaluations.
+headers    Write results/lichess/games/, the same rows without the movetext
+           (fetch does this too); small enough to commit, and all the
+           analyses need besides the event tables.
 sample     Write a small PGN file of kept games (e.g. 2,000) for checking the
            event extractor by eye.
 
@@ -358,6 +361,7 @@ def fetch_month(month: str, out: Path, categories: set[str], min_mean_rating: fl
     if isinstance(handle, subprocess.Popen):
         handle.kill() if max_games else handle.wait()
     write_parquet_atomic(df, out)
+    write_headers(df, out)
     log.info("%s: %d games read, %d kept -> %s", month, seen, len(df), out)
     return out
 
@@ -391,6 +395,31 @@ def cmd_fetch(args: argparse.Namespace) -> int:
 
 BANDS = [0, 1200, 1500, 1800, 2000, 2200, 2400, 4000]
 BAND_LABELS = ["<1200", "1200-1499", "1500-1799", "1800-1999", "2000-2199", "2200-2399", "2400+"]
+
+
+def headers_path(raw: Path) -> Path:
+    """results/lichess/games/<same name>: the games without their movetext,
+    small enough to commit (the raw files stay local)."""
+    return raw.parent.parent / "games" / raw.name
+
+
+def write_headers(df: pd.DataFrame, raw: Path) -> Path:
+    dest = headers_path(raw)
+    write_parquet_atomic(df.drop(columns=["movetext"], errors="ignore"), dest)
+    return dest
+
+
+def cmd_headers(args: argparse.Namespace) -> int:
+    """Write the headers-only tables for months parsed before fetch did it."""
+    out_dir = Path(args.output_dir)
+    pattern = f"lichess_*_{args.tag}.parquet" if args.tag else "lichess_????-??.parquet"
+    files = sorted((out_dir / "raw").glob(pattern))
+    if not files:
+        raise SystemExit(f"no parsed months matching {pattern} under {out_dir / 'raw'}")
+    for f in files:
+        dest = write_headers(pd.read_parquet(f), f)
+        log.info("%s -> %s", f.name, dest)
+    return 0
 
 
 def load_raw(out_dir: Path, tag: str | None, columns: list[str] | None = None) -> pd.DataFrame:
@@ -474,6 +503,9 @@ def build_parser() -> argparse.ArgumentParser:
     f.add_argument("--pgn-dir", help="read lichess_db_standard_rated_YYYY-MM.pgn.zst from this "
                    "folder when present (e.g. downloaded with wget), instead of streaming")
     f.set_defaults(func=cmd_fetch)
+    hd = sub.add_parser("headers", parents=[common],
+                        help="write the committable headers-only tables (results/lichess/games/)")
+    hd.set_defaults(func=cmd_headers)
     s = sub.add_parser("summarise", parents=[common], help="summary counts of the parsed games")
     s.set_defaults(func=cmd_summarise)
     a = sub.add_parser("sample", parents=[common], help="write a small PGN of kept games")
