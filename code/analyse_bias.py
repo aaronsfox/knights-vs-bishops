@@ -1,16 +1,16 @@
-"""Question 3 (Step 3): does preferring one piece win games? (manipulated engines)
+"""Question 2 (Step 2): does preferring one piece win games? (manipulated engines)
 
 Each Stockfish 11 variant plays the unmodified build (engines/sf11) from the
 standard position, colours swapped in pairs over the opening book. A variant
 scoring above 0.5 gains from its preference; below 0.5 it loses from it.
 
-* **3a. Variant vs base:** the variant's W/D/L, with a Dirichlet posterior
+* **2a. Variant vs base:** the variant's W/D/L, with a Dirichlet posterior
   (stats_core.py; DEFF from the ICC of games within book lines), giving its
   E and Delta_Elo with 95% intervals, the decisive rate and P(Delta_Elo > 0).
-* **3b. Likes vs loves:** within each direction (knight, bishop), the
+* **2b. Likes vs loves:** within each direction (knight, bishop), the
   stronger preference minus the milder one, from independent posterior draws.
 
-Gate 3 (analysis plan): the base build against itself should score ~0 Elo;
+Gate 2 (analysis plan): the base build against itself should score ~0 Elo;
 if such a match exists (sf11 vs sf11, or sf11 self-play) it is reported too.
 
     python code/analyse_bias.py
@@ -46,7 +46,7 @@ def display_name(key: str) -> str:
 def load_games(tables: Path = TABLES, base: str = BASE) -> pd.DataFrame:
     games = pd.read_parquet(tables / "selfplay_games.parquet").dropna(subset=["score_white"])
     variants = games[games.opponent == base]
-    # Gate 3: the base build's self-play, from the positions the variants play.
+    # Gate 2: the base build's self-play, from the positions the variants play.
     gate = games[(games.player == base) & (games.opponent.fillna("") == "")
                  & games.position_id.isin(variants.position_id.unique())]
     g = pd.concat([variants, gate]).copy()
@@ -130,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     post.to_csv(out / "bias_variants.csv", index=False, float_format="%.6g")
     lvl.to_csv(out / "bias_likes_vs_loves.csv", index=False, float_format="%.6g")
-    lines = ["Question 3: variants against Stockfish 11", ""]
+    lines = ["Question 2: variants against Stockfish 11", ""]
     for r in post.itertuples():
         lines.append(f"  {r.display_name:22s} ({r.player}) vs {r.opponent}: {r.games} games, "
                      f"W {r.wins} D {r.draws} L {r.losses} | Delta_Elo {r.delta_elo:+.1f} "

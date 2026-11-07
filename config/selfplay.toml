@@ -1,13 +1,13 @@
-# selfplay: settings for engine games (Steps 3 and 4).
+# selfplay: settings for engine games (Steps 2 and 3).
 #
 # Each match plays every book line of a position `games_per_line` times, with
 # colours swapped in pairs, so each position gets lines_per_position x
 # games_per_line games (50 x 10 = 500). Games are run with fastchess
 # (tools/fastchess/build_linux.sh), one fastchess match per position.
 #
-#   Step 4    self-play of a full-strength engine on the removal matrix:
+#   Step 3    self-play of a full-strength engine on the removal matrix:
 #               python code/selfplay.py run --player stockfish --positions removal,control,pawn_odds
-#   Step 3    a Stockfish 11 variant against the base build, from the standard position:
+#   Step 2    a Stockfish 11 variant against the base build, from the standard position:
 #               python code/selfplay.py run --player sf11_b050 --opponent sf11 --positions start
 #
 # Topping up the key comparisons to ~3,000 games each: run the key cells

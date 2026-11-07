@@ -1,4 +1,4 @@
-# evaluate_sp: settings for the screening pass (Question 4a): every starting
+# evaluate_sp: settings for the screening pass (Question 3a): every starting
 # position of the study evaluated at a ladder of node budgets. Every budget is
 # a separate, fresh, single-threaded search.
 

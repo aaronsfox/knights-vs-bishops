@@ -4,11 +4,11 @@ Two kinds of match, both starting every game from one of the position's
 opening-book lines, each line played ``games_per_line`` times with colours
 swapped in pairs (50 lines x 10 games = 500 games per position by default):
 
-* **Self-play** (Step 4, the removal matrix): two copies of one player,
+* **Self-play** (Step 3, the removal matrix): two copies of one player,
   ``<player>_a`` and ``<player>_b``. Swapping the copies does not move the
   material, so colour balance comes from each position's colour-flipped
   twin (positions.py); the analysis pools the two.
-* **Player vs opponent** (Step 3): e.g. a manipulated Stockfish 11 build
+* **Player vs opponent** (Step 2): e.g. a manipulated Stockfish 11 build
   against the base build, from the standard position. Here swapping colours
   does balance the variant's colour.
 

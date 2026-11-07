@@ -1,4 +1,11 @@
-"""Step 1 (Question 1): exact endgame value of bishop vs knight, from Syzygy.
+"""Exact endgame verdicts from Syzygy tables (used in Question 1c).
+
+In the current plan the tablebases give the exact result of the minor-piece
+endgames reached in human games (Step 1, analysis 1c); probing a list of
+positions from those games is still to add. The sampling mode below, which
+draws uniform random positions for swapped material pairs, is kept as an
+optional theoretical baseline but is not part of the planned analyses.
+
 
 For each material set (config/tablebase.toml) sample legal positions
 uniformly, probe the tablebases for the result with best play (WDL) and the
@@ -15,8 +22,8 @@ Subcommands
 run      Sample and probe one or more material sets; one Parquet file per
          set under raw/ (resumable: finished sets are skipped).
 collect  Combine into tables: every sampled position, and per set the strong
-         side's win/draw/loss rates with Jeffreys intervals (1a), DTZ of wins
-         (1c), and the swapped-pair differences.
+         side's win/draw/loss rates with Jeffreys intervals, DTZ of wins, and the
+         swapped-pair differences.
 
 Examples
 --------
@@ -135,7 +142,7 @@ def square_is_light(sq: chess.Square) -> bool:
 
 
 def features(board: chess.Board, strong: chess.Color = chess.WHITE) -> dict[str, Any]:
-    """Pawn features from the strong side's view (analysis plan, Question 1b)."""
+    """Pawn features from the strong side's view (as recorded for endgames reached in Question 1c)."""
     pawns = list(board.pieces(chess.PAWN, chess.WHITE)) + list(board.pieces(chess.PAWN, chess.BLACK))
     own = list(board.pieces(chess.PAWN, strong))
     files = {chess.square_file(s) for s in pawns}
@@ -231,7 +238,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Collect: 1a and 1c
+# Collect: win rates and DTZ
 # ---------------------------------------------------------------------------
 
 def jeffreys(k: int, n: int) -> tuple[float, float, float]:

@@ -1,7 +1,7 @@
 [project]
 name = "knights-vs-bishops"
 version = "0.1.0"
-description = "Are bishops worth more than knights? Tablebases, human games, biased engines and engine self-play"
+description = "Are bishops worth more than knights? Human games, biased engines and engine self-play"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

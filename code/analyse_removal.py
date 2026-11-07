@@ -1,4 +1,4 @@
-"""Question 4 (Step 4): start-position value of the minor pieces (the removal matrix).
+"""Question 3 (Step 3): start-position value of the minor pieces (the removal matrix).
 
 Reads the ``selfplay.py collect`` tables (self-play matches only) and follows
 the analysis plan:
@@ -12,19 +12,19 @@ the analysis plan:
   posterior (stats_core.py), giving the focal side's E and Delta_Elo with 95%
   intervals, the decisive rate and the focal side's share of decisive games.
   Mirrored controls (positions that are their own twin) give White's edge.
-* **4b. Cell estimates and pawn equivalents.** Every comparison, plus each
+* **3b. Cell estimates and pawn equivalents.** Every comparison, plus each
   design's mean over its comparisons (BN v NN = single bishop v knight,
   BB v BN = the pair over one bishop, BB v NN = both), in Elo and in pawn
   equivalents: Delta_Elo / Delta_Elo of the pawn-odds comparisons for the
   same player, draw by draw. White's edge in each position, and the
   colour interaction (focal side as White minus as Black).
-* **4c. Additivity:** Delta(BB v NN) - [Delta(BB v BN) + Delta(BN v NN)].
-* **4d. Which square:** the comparison table, ranked within each design.
-* **4e. Evaluation vs outcome** (when evaluate_sp tables exist): outcomes
+* **3c. Additivity:** Delta(BB v NN) - [Delta(BB v BN) + Delta(BN v NN)].
+* **3d. Which square:** the comparison table, ranked within each design.
+* **3e. Evaluation vs outcome** (when evaluate_sp tables exist): outcomes
   regressed on the same engine's top-budget evaluation, with the correlation
   corrected for game noise.
-* **4f. Decisiveness:** decisive rate against |Delta_Elo|.
-* **4g. Agreement** between engines: Spearman's rho with
+* **3f. Decisiveness:** decisive rate against |Delta_Elo|.
+* **3g. Agreement** between engines: Spearman's rho with
   a bootstrap interval, corrected for noise, and Bland-Altman.
 
 Everything is ranked and reported in full; counts at probability thresholds
@@ -209,7 +209,7 @@ def colour_interaction(games: pd.DataFrame, iccs: dict[str, float]) -> pd.DataFr
 
 
 # ---------------------------------------------------------------------------
-# 4b, 4c: designs, pawn equivalents, additivity
+# 3b, 3c: designs, pawn equivalents, additivity
 # ---------------------------------------------------------------------------
 
 def pawn_draws(comp: pd.DataFrame, draws: dict) -> dict[str, np.ndarray]:
@@ -270,7 +270,7 @@ def design_summary(comp: pd.DataFrame, draws: dict) -> tuple[pd.DataFrame, pd.Da
 
 
 # ---------------------------------------------------------------------------
-# 4e, 4f, 4g
+# 3e, 3f, 3g
 # ---------------------------------------------------------------------------
 
 def evaluation_vs_outcome(comp: pd.DataFrame, evals_path: Path = EVALS) -> pd.DataFrame:
@@ -436,7 +436,7 @@ def fig_designs(designs: pd.DataFrame, out_dir: Path) -> list[Path]:
 # ---------------------------------------------------------------------------
 
 def summary_text(qc, designs, add, agree) -> str:
-    L = ["Question 4: start-position value (removal matrix)", ""]
+    L = ["Question 3: start-position value (removal matrix)", ""]
     for r in qc.itertuples():
         L.append(f"{r.match}: {r.games} games over {r.positions} positions, draws "
                  f"{100 * r.draw_rate:.1f}%, ICC {r.icc:.3f}, DEFF ~{r.deff_typical:.2f}, "

@@ -4,15 +4,15 @@ Each engine has its own folder:
 
 | Folder | Engine | Shown as | Search | Used in |
 | --- | --- | --- | --- | --- |
-| `stockfish/` | Stockfish 19 | Stockfish | Alpha-beta, NNUE | Step 4, opening books, event evaluations (Step 2) |
-| `caissa/` | Caissa 2.0 | Caissa | Alpha-beta, NNUE (own self-play data) | Step 4 |
-| `lc0/` | Lc0 v0.32.1 (GPU) | Lc0 | Neural MCTS | Step 4 (key cells), evaluation |
-| `sf11/` | Stockfish 11, unmodified | Stockfish 11 | Alpha-beta, hand-crafted | Step 3 baseline |
-| `sf11_n020/` | Stockfish 11, knight +0.2 pawns relative to bishop | Aron Knightzowitsch | " | Step 3: likes knights |
-| `sf11_n050/` | Stockfish 11, knight +0.5 | Hikaru Knightamura | " | Step 3: loves knights |
-| `sf11_b020/` | Stockfish 11, bishop +0.2 pawns relative to knight | Bishy Anand | " | Step 3: likes bishops |
-| `sf11_b050/` | Stockfish 11, bishop +0.5 | Bobby Bischer | " | Step 3: loves bishops |
-| `sf11_pair200/` | Stockfish 11, bishop-pair term x 2 | Magnus Pairlsen | " | Step 3 (optional) |
+| `stockfish/` | Stockfish 19 | Stockfish | Alpha-beta, NNUE | Step 3, opening books, event evaluations (Step 1) |
+| `caissa/` | Caissa 2.0 | Caissa | Alpha-beta, NNUE (own self-play data) | Step 3 |
+| `lc0/` | Lc0 v0.32.1 (GPU) | Lc0 | Neural MCTS | Step 3 (key cells), evaluation |
+| `sf11/` | Stockfish 11, unmodified | Stockfish 11 | Alpha-beta, hand-crafted | Step 2 baseline |
+| `sf11_n020/` | Stockfish 11, knight +0.2 pawns relative to bishop | Aron Knightzowitsch | " | Step 2: likes knights |
+| `sf11_n050/` | Stockfish 11, knight +0.5 | Hikaru Knightamura | " | Step 2: loves knights |
+| `sf11_b020/` | Stockfish 11, bishop +0.2 pawns relative to knight | Bishy Anand | " | Step 2: likes bishops |
+| `sf11_b050/` | Stockfish 11, bishop +0.5 | Bobby Bischer | " | Step 2: loves bishops |
+| `sf11_pair200/` | Stockfish 11, bishop-pair term x 2 | Magnus Pairlsen | " | Step 2 (optional) |
 
 `stockfish11/` is not an engine: it holds the build script and patcher that
 make all the `sf11*` binaries (see `stockfish11/README.md`).
