@@ -1,0 +1,29 @@
+Lichess rated standard games: what we've got
+============================================
+
+Games: 12,976 from 1 month(s); players: 5,376
+
+By category and mean-rating band:
+category   classical
+row_0               
+2000-2199       9742
+2200-2399       1978
+2400+           1256
+
+Most common time controls:
+time_control
+1800+0     3723
+1500+0     2296
+1200+10    1932
+1800+20    1062
+900+15      605
+1500+10     253
+1800+10     241
+1500+2      183
+1800+30     166
+1800+2      163
+
+Terminations: Normal 12,076, Time forfeit 833, Abandoned 48, Rules infraction 12, Insufficient material 7
+Results: White 45.6%, draw 13.5%, Black 40.9%
+With clocks: 99.8%; with Lichess evaluations: 54.6%; bot games: 2,530; berserk (either side): 1,099
+Plies: p5: 27, p25: 52, p50: 74, p75: 105, p95: 161
