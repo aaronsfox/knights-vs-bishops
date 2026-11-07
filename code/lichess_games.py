@@ -8,8 +8,12 @@ each file is streamed from the web (or read from a local .pgn.zst) through a
 zstd decompressor and parsed line by line. Headers are filtered as text, so
 only kept games carry their movetext forward.
 
-Needs internet access (the cluster login node), or files already downloaded
-with wget and passed with --pgn-dir.
+Needs internet access (run it on the cluster login node, as in Chess960):
+the month is streamed and filtered as it arrives, holding only the kept
+games in memory, so nothing large is written to disk. A standard month is
+far bigger than a Chess960 one (~100 million games), so the scan takes a
+while; a dropped connection restarts that month. Files already downloaded
+with wget can be read instead with --pgn-dir.
 
 Subcommands
 -----------

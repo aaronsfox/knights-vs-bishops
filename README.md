@@ -165,19 +165,23 @@ python code/analyse_bias.py
 ```
 
 **5. Human games** (Step 1). Pilot: high-rated classical games from one
-month. Download the month on the login node, then parse, extract events and
-summarise on a compute node:
+month. As in the Chess960 project, `fetch` streams the month's export from
+Lichess and filters it as it goes (nothing is downloaded to disk; only kept
+games are written), so it needs internet: run it on the login node (it reads
+every game's headers, ~100 million a month, so use screen/tmux or nohup).
+Then extract the events and summarise on a compute node:
 
 ```bash
-mkdir -p data/lichess logs
-wget -c -P data/lichess https://database.lichess.org/standard/lichess_db_standard_rated_2026-10.pgn.zst
-sbatch jobs/lichess_pilot.slurm            # MONTH, CATEGORIES, MIN_RATING, TAG to change
+python code/lichess_games.py fetch --months 2026-10 --categories classical \
+    --min-mean-rating 2000 --tag pilot                 # login node; streams
+sbatch jobs/lichess_pilot.slurm                        # events and summary
 ```
 
-or step by step: `python code/lichess_games.py fetch --months 2026-10
---categories classical --min-mean-rating 2000 --tag pilot --pgn-dir
-data/lichess`, then `summarise --tag pilot`, `python code/human_events.py run
---tag pilot --workers 8` and `python code/explore_human_pilot.py --tag pilot`.
+or run the rest by hand: `python code/lichess_games.py summarise --tag pilot`,
+`python code/human_events.py run --tag pilot --workers 8` and
+`python code/explore_human_pilot.py --tag pilot`. If streaming isn't
+possible, download the `.pgn.zst` with `wget` into `data/lichess/` and add
+`--pgn-dir data/lichess` to `fetch`.
 
 ## Outputs
 
